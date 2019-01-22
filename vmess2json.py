@@ -262,14 +262,17 @@ def fill_h2(_c, _v):
 def vmess2client(_t, _v):
     _c = fill_basic(_t, _v)
 
-    if _v["net"] == "kcp":
+    _net = _v["net"]
+    _type = _v["type"]
+
+    if _net == "kcp":
         return fill_kcp(_c, _v)
-    elif _v["net"] == "ws":
+    elif _net == "ws":
         return fill_ws(_c, _v)
-    elif _v["net"] == "h2":
+    elif _net == "h2":
         return fill_h2(_c, _v)
-    elif _v["net"] == "tcp":
-        if _v["type"] == "http":
+    elif _net == "tcp":
+        if _type == "http":
             return fill_tcp_http(_c, _v)
         return _c
     else:
