@@ -11,7 +11,7 @@ usage: vmess2json.py [-h] [-o OUTPUT] [vmess]
 vmess2json convert vmess link to client json config.
 
 positional arguments:
-  vmess                 vmess://...
+  vmess                 A vmess:// link. If absent, reads a line from stdin.
 
 optional arguments:
   -h, --help            show this help message and exit
