@@ -6,7 +6,7 @@ Currently supports only V2rayN/NG links.
 
 ## Usage
 ```
-usage: vmess2json.py [-h] [-o OUTPUT] [vmess]
+usage: vmess2json.py [-h] [-m] [-o OUTPUT] [vmess]
 
 vmess2json convert vmess link to client json config.
 
@@ -15,6 +15,8 @@ positional arguments:
 
 optional arguments:
   -h, --help            show this help message and exit
+  -m, --multiple        read multiple lines from stdin, each write to a json
+                        file named by remark, saving in current dir (PWD).
   -o OUTPUT, --output OUTPUT
                         write output to file. default to stdout
 ```

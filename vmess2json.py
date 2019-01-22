@@ -1,9 +1,11 @@
 #!/usr/bin/env python3
+import os
 import sys
 import json
 import base64
 import pprint
 import argparse
+import random
 
 TPL = {}
 TPL["CLIENT"] = """
@@ -302,9 +304,36 @@ def vmess2client(_t, _v):
         pprint.pprint(_v)
         raise Exception("this link seem invalid to the script, please report to dev.")
 
+
+def parseMultiple(lines):
+    def genPath(ps, rand=False):
+        # add random in case list "ps" share common names
+        curdir = os.environ.get("PWD", '/tmp/')
+        rnd = "-{}".format(random.randrange(100)) if rand else ""
+        name = "{}{}.json".format(vc["ps"], rnd)
+        return os.path.join(curdir, name)
+
+    for line in lines:
+        vc = parseVmess(line.strip())
+        cc = vmess2client(load_TPL("CLIENT"), vc)
+
+        jsonpath = genPath(vc["ps"])
+        while os.path.exists(jsonpath):
+            jsonpath = genPath(vc["ps"], True)
+
+        print("Wrote: " + jsonpath)
+        with open(jsonpath, 'w') as f:
+            json.dump(cc, f, indent=4)
+
+
 if __name__ == "__main__":
 
     parser = argparse.ArgumentParser(description="vmess2json convert vmess link to client json config.")
+    parser.add_argument('-m', '--multiple',
+                        action="store_true",
+                        default=False,
+                        help="read multiple lines from stdin, "
+                             "each write to a json file named by remark, saving in current dir (PWD).")
     parser.add_argument('-o', '--output',
                         type=argparse.FileType('w'),
                         default=sys.stdout,
@@ -314,11 +343,15 @@ if __name__ == "__main__":
                         help="A vmess:// link. If absent, reads a line from stdin.")
 
     option = parser.parse_args()
-    if option.vmess is None:
-        vmess = sys.stdin.readline()
-    else:
-        vmess = option.vmess
 
-    vc = parseVmess(vmess.strip())
-    cc = vmess2client(load_TPL("CLIENT"), vc)
-    json.dump(cc, option.output, indent=4)
+    if option.multiple:
+        parseMultiple(sys.stdin.readlines())
+    else:
+        if option.vmess is None:
+            vmess = sys.stdin.readline()
+        else:
+            vmess = option.vmess
+
+        vc = parseVmess(vmess.strip())
+        cc = vmess2client(load_TPL("CLIENT"), vc)
+        json.dump(cc, option.output, indent=4)
