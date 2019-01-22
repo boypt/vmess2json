@@ -1,12 +1,22 @@
 # Vmess2Json
 
-Simple script parses `vmess://` links to v2ray config json.
+Simple script parses `vmess://` links into client v2ray config json.
 
-Currently supports only V2rayN/NG type links.
+Currently supports only V2rayN/NG links.
 
 ## Usage
 ```
-vmess2json.py vmess://......
+usage: vmess2json.py [-h] [-o OUTPUT] [vmess]
+
+vmess2json convert vmess link to client json config.
+
+positional arguments:
+  vmess                 vmess://...
+
+optional arguments:
+  -h, --help            show this help message and exit
+  -o OUTPUT, --output OUTPUT
+                        write output to file. default to stdout
 ```
 
 ## Reference

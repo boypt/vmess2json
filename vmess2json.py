@@ -4,6 +4,9 @@ import sys
 import json
 import base64
 import pprint
+import argparse
+
+Option = None
 
 def parseVmess(vmesslink):
     """
@@ -95,12 +98,22 @@ def vmess2client(_v):
         raise Exception("this link seem invalid to the script, please report to dev.")
 
 if __name__ == "__main__":
-    if len(sys.argv) != 2:
-        print("{} vmess://....".format(sys.argv[0]))
-        sys.exit(1)
 
-    vc = parseVmess(sys.argv[1])
-    cc = vmess2client(vc)
-    s = json.dumps(cc, indent=4)
-    print(s)
+    parser = argparse.ArgumentParser(description="vmess2json convert vmess link to client json config.")
+    parser.add_argument('-o', '--output',
+                        type=argparse.FileType('w'),
+                        default=sys.stdout,
+                        help="write output to file. default to stdout")
+    parser.add_argument('vmess',
+                        nargs='?',
+                        help="vmess://...")
+
+    Option = parser.parse_args()
+
+    if Option.vmess is not None:
+        vc = parseVmess(Option.vmess)
+        cc = vmess2client(vc)
+        json.dump(cc, Option.output, indent=4)
+    else:
+        parser.print_help()
 
