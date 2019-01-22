@@ -6,7 +6,6 @@ import base64
 import pprint
 import argparse
 
-Option = None
 TPL = {}
 TPL["CLIENT"] = """
 {
@@ -290,12 +289,11 @@ if __name__ == "__main__":
                         nargs='?',
                         help="vmess://...")
 
-    Option = parser.parse_args()
-
-    if Option.vmess is not None:
-        vc = parseVmess(Option.vmess)
+    option = parser.parse_args()
+    if option.vmess is not None:
+        vc = parseVmess(option.vmess)
         cc = vmess2client(load_TPL("CLIENT"), vc)
-        json.dump(cc, Option.output, indent=4)
+        json.dump(cc, option.output, indent=4)
     else:
         parser.print_help()
 
