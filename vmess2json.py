@@ -186,6 +186,15 @@ TPL["h2"] = """
 }
 """
 
+TPL["quic"] = """
+{
+  "security": "none",
+  "key": "",
+  "header": {
+    "type": "none"
+  }
+}
+"""
 
 def parseVmess(vmesslink):
     """
@@ -240,6 +249,7 @@ def fill_tcp_http(_c, _v):
     if _v["path"]  != "":
         tcps["header"]["request"]["path"] = [ _v["path"] ]
 
+    _c["outbounds"][0]["streamSettings"]["tcpSettings"] = tcps
     return _c
 
 def fill_kcp(_c, _v):
@@ -262,6 +272,14 @@ def fill_h2(_c, _v):
     _c["outbounds"][0]["streamSettings"]["httpSettings"] = h2s
     return _c
 
+def fill_quic(_c, _v):
+    quics = load_TPL("quic")
+    quics["header"]["type"] = _v["type"]
+    quics["security"] = _v["tls"]
+    quics["key"] = _v["host"] + _v["path"]
+    _c["outbounds"][0]["streamSettings"]["quicSettings"] = quics
+    return _c
+
 def vmess2client(_t, _v):
     _c = fill_basic(_t, _v)
 
@@ -274,6 +292,8 @@ def vmess2client(_t, _v):
         return fill_ws(_c, _v)
     elif _net == "h2":
         return fill_h2(_c, _v)
+    elif _net == "quic":
+        return fill_quic(_c, _v)
     elif _net == "tcp":
         if _type == "http":
             return fill_tcp_http(_c, _v)
