@@ -207,6 +207,11 @@ def parseVmess(vmesslink):
     vmscheme = "vmess://"
     if vmesslink.startswith(vmscheme):
         bs = vmesslink[len(vmscheme):]
+        #paddings
+        blen = len(bs)
+        if blen % 4 > 0:
+            bs += "=" * (4 - blen % 4)
+
         vms = base64.b64decode(bs)
         return json.loads(vms)
     else:
@@ -286,13 +291,14 @@ if __name__ == "__main__":
                         help="write output to file. default to stdout")
     parser.add_argument('vmess',
                         nargs='?',
-                        help="vmess://...")
+                        help="A vmess:// link. If absent, reads a line from stdin.")
 
     option = parser.parse_args()
-    if option.vmess is not None:
-        vc = parseVmess(option.vmess)
-        cc = vmess2client(load_TPL("CLIENT"), vc)
-        json.dump(cc, option.output, indent=4)
+    if option.vmess is None:
+        vmess = sys.stdin.readline()
     else:
-        parser.print_help()
+        vmess = option.vmess
 
+    vc = parseVmess(vmess.strip())
+    cc = vmess2client(load_TPL("CLIENT"), vc)
+    json.dump(cc, option.output, indent=4)
