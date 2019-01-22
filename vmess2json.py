@@ -246,7 +246,8 @@ def fill_tcp_http(_c, _v):
     tcps = load_TPL("http")
     tcps["header"]["type"] = _v["type"]
     if _v["host"]  != "":
-        tcps["header"]["request"]["headers"]["Host"] = [ _v["host"] ]
+        # multiple host
+        tcps["header"]["request"]["headers"]["Host"] = _v["host"].split(",")
 
     if _v["path"]  != "":
         tcps["header"]["request"]["path"] = [ _v["path"] ]
@@ -277,8 +278,8 @@ def fill_h2(_c, _v):
 def fill_quic(_c, _v):
     quics = load_TPL("quic")
     quics["header"]["type"] = _v["type"]
-    quics["security"] = _v["tls"]
-    quics["key"] = _v["host"] + _v["path"]
+    quics["security"]       = _v["host"]
+    quics["key"]            = _v["path"]
     _c["outbounds"][0]["streamSettings"]["quicSettings"] = quics
     return _c
 
@@ -315,6 +316,10 @@ def parseMultiple(lines):
 
     for line in lines:
         vc = parseVmess(line.strip())
+        if int(vc["v"]) != 2:
+            print("Version mismatched, skiped. This script only supports version 2.")
+            continue
+
         cc = vmess2client(load_TPL("CLIENT"), vc)
 
         jsonpath = genPath(vc["ps"])
@@ -353,5 +358,8 @@ if __name__ == "__main__":
             vmess = option.vmess
 
         vc = parseVmess(vmess.strip())
+        if int(vc["v"]) != 2:
+            print("ERROR: Vmess link version mismatch. This script only supports version 2.")
+            sys.exit(1)
         cc = vmess2client(load_TPL("CLIENT"), vc)
         json.dump(cc, option.output, indent=4)
