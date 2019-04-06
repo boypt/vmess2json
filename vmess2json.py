@@ -389,7 +389,7 @@ def parseMultiple(lines):
             continue
 
         cc = vmess2client(load_TPL("CLIENT"), vc)
-        cc = setInbounds(cc)
+        cc = fillInbounds(cc)
 
         jsonpath = genPath(vc["ps"])
         while os.path.exists(jsonpath):
@@ -405,7 +405,7 @@ def jsonDump(obj, fobj):
     else:
         json.dump(obj, fobj, indent=4)
 
-def setInbounds(_c):
+def fillInbounds(_c):
     _ins = option.inbounds.split(",")
     for _in in _ins:
         _proto, _port = _in.split(":")
@@ -495,5 +495,5 @@ if __name__ == "__main__":
             sys.exit(1)
 
         cc = vmess2client(load_TPL("CLIENT"), vc)
-        cc = setInbounds(cc)
+        cc = fillInbounds(cc)
         jsonDump(cc, option.output)
