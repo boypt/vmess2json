@@ -52,18 +52,12 @@ TPL["CLIENT"] = """
 				]
 			},
 			"streamSettings": {
-				"security": "",
-				"tlsSettings": {},
-				"wsSettings": {},
-				"httpSettings": {},
-				"network": "tcp",
-				"kcpSettings": {},
-				"tcpSettings": {},
-				"quicSettings": {}
+				"network": "tcp"
 			},
 			"mux": {
 				"enabled": true
-			}
+			},
+			"tag": "proxy"
 		},
 		{
 			"protocol": "freedom",
@@ -233,13 +227,19 @@ def load_TPL(stype):
     return json.loads(s)
 
 def fill_basic(_c, _v):
-    _c["outbounds"][0]["settings"]["vnext"][0]["address"]               = _v["add"]
-    _c["outbounds"][0]["settings"]["vnext"][0]["port"]                  = _v["port"]
-    _c["outbounds"][0]["settings"]["vnext"][0]["users"][0]["id"]        = _v["id"]
-    _c["outbounds"][0]["settings"]["vnext"][0]["users"][0]["alterId"]   = int(_v["aid"])
-    _c["outbounds"][0]["streamSettings"]["network"]                     = _v["net"]
+    _outbound = _c["outbounds"][0]
+    _vnext = _outbound["settings"]["vnext"][0]
+
+    _vnext["address"]               = _v["add"]
+    _vnext["port"]                  = _v["port"]
+    _vnext["users"][0]["id"]        = _v["id"]
+    _vnext["users"][0]["alterId"]   = int(_v["aid"])
+
+    _outbound["streamSettings"]["network"]  = _v["net"]
+
     if _v["tls"] == "tls":
-        _c["outbounds"][0]["streamSettings"]["security"] = "tls"
+        _outbound["streamSettings"]["security"] = "tls"
+
     return _c
 
 def fill_tcp_http(_c, _v):
@@ -328,7 +328,13 @@ def parseMultiple(lines):
 
         print("Wrote: " + jsonpath)
         with open(jsonpath, 'w') as f:
-            json.dump(cc, f, indent=4)
+            jsonDump(cc, f)
+
+def jsonDump(obj, fobj):
+    if option.outbound:
+        json.dump(obj["outbounds"][0], fobj, indent=4)
+    else:
+        json.dump(obj, fobj, indent=4)
 
 
 if __name__ == "__main__":
@@ -343,6 +349,10 @@ if __name__ == "__main__":
                         type=argparse.FileType('w'),
                         default=sys.stdout,
                         help="write output to file. default to stdout")
+    parser.add_argument('-ob', '--outbound',
+                        action="store_true",
+                        default=False,
+                        help="only output as an outbound object.")
     parser.add_argument('vmess',
                         nargs='?',
                         help="A vmess:// link. If absent, reads a line from stdin.")
@@ -362,4 +372,4 @@ if __name__ == "__main__":
             print("ERROR: Vmess link version mismatch. This script only supports version 2.")
             sys.exit(1)
         cc = vmess2client(load_TPL("CLIENT"), vc)
-        json.dump(cc, option.output, indent=4)
+        jsonDump(cc, option.output)
