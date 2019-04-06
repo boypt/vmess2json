@@ -10,96 +10,78 @@ import random
 TPL = {}
 TPL["CLIENT"] = """
 {
-	"log": {
-		"access": "",
-		"error": "",
-		"loglevel": "error"
-	},
-	"inbounds": [
-		{
-			"port": 1080,
-			"listen": "::",
-			"protocol": "socks",
-			"settings": {
-				"auth": "noauth",
-				"udp": true,
-				"ip": "127.0.0.1"
-			},
-			"streamSettings": null
-		},
-		{
-			"port": 3128,
-			"listen": "::",
-			"protocol": "http"
-		}
-	],
-	"outbounds": [
-		{
-			"protocol": "vmess",
-			"settings": {
-				"vnext": [
-					{
-						"address": "host.host",
-						"port": 1234,
-						"users": [
-							{
-								"id": "<TOBEFILLED>",
-								"alterId": 0,
-								"security": "auto"
-							}
-						]
-					}
-				]
-			},
-			"streamSettings": {
-				"network": "tcp"
-			},
-			"mux": {
-				"enabled": true
-			},
-			"tag": "proxy"
-		},
-		{
-			"protocol": "freedom",
-			"settings": {
-				"response": null
-			},
-			"tag": "direct"
-		}
-	],
-	"dns": {
-		"servers": [
-			"8.8.8.8",
-			"8.8.4.4",
-			"1.1.1.1"
-		]
-	},
-	"routing": {
-		"domainStrategy": "AsIs",
-		"rules": [
-			{
-				"type": "field",
-				"ip": [
-					"geoip:private"
-				],
-				"outboundTag": "direct"
-			},
-			{
-				"type": "field",
-				"domain": [
-					"geosite:cn"
-				],
-				"outboundTag": "direct"
-			},
-			{
-				"type": "field",
-				"domain": [
-					"geoip:cn"
-				],
-				"outboundTag": "direct"
-			}
-		]
-	}
+  "log": {
+    "access": "",
+    "error": "",
+    "loglevel": "error"
+  },
+  "inbounds": [
+  ],
+  "outbounds": [
+    {
+      "protocol": "vmess",
+      "settings": {
+        "vnext": [
+          {
+            "address": "host.host",
+            "port": 1234,
+            "users": [
+              {
+                "email": "user@v2ray.com",
+                "id": "<TOBEFILLED>",
+                "alterId": 0,
+                "security": "auto"
+              }
+            ]
+          }
+        ]
+      },
+      "streamSettings": {
+        "network": "tcp"
+      },
+      "mux": {
+        "enabled": true
+      },
+      "tag": "proxy"
+    },
+    {
+      "protocol": "freedom",
+      "tag": "direct"
+    }
+  ],
+  "dns": {
+    "servers": [
+      "8.8.8.8",
+      "8.8.4.4",
+      "1.1.1.1"
+    ]
+  },
+  "routing": {
+    "domainStrategy": "AsIs",
+    "rules": [
+      {
+        "type": "field",
+        "ip": [
+          "geoip:private"
+        ],
+        "outboundTag": "direct"
+      },
+      {
+        "type": "field",
+        "domain": [
+          "geosite:cn"
+        ],
+        "outboundTag": "direct"
+      },
+      {
+        "type": "field",
+        "domain": [
+          "geoip:cn"
+        ],
+        "outboundTag": "direct"
+      }
+    ]
+  }
 }
 """
 
@@ -189,6 +171,92 @@ TPL["quic"] = """
   "header": {
     "type": "none"
   }
+}
+"""
+
+TPL["in_socks"] = """
+{
+    "tag":"socks-in",
+    "port": 10808,
+    "listen": "::",
+    "protocol": "socks",
+    "settings": {
+        "auth": "noauth",
+        "udp": true,
+        "ip": "127.0.0.1"
+    }
+}
+"""
+
+TPL["in_http"] = """
+{
+    "tag":"http-in",
+    "port": 8123,
+    "listen": "::",
+    "protocol": "http"
+}
+"""
+
+TPL["in_dns"] = """
+{
+  "port": 53,
+  "tag": "dns-in",
+  "protocol": "dokodemo-door",
+  "settings": {
+    "address": "1.1.1.1",
+    "port": 53,
+    "network": "tcp,udp"
+  }
+}
+"""
+
+TPL["conf_dns"] = """
+{
+    "hosts": {
+        "geosite:category-ads": "127.0.0.1",
+        "domain:googleapis.cn": "googleapis.com"
+    },
+    "servers": [
+        "1.0.0.1",
+        {
+            "address": "1.2.4.8",
+            "domains": [
+                "geosite:cn"
+            ],
+            "port": 53
+        }
+    ]
+}
+"""
+
+TPL["in_transparent"] = """
+{
+    "tag":"transparent-in",
+    "port": 1080,
+    "protocol": "dokodemo-door",
+    "settings": {
+        "network": "tcp,udp",
+        "followRedirect": true
+    },
+    "sniffing": {
+        "enabled": true,
+        "destOverride": [
+            "http",
+            "tls"
+        ]
+    }
+}
+"""
+
+TPL["in_api"] = """
+{
+    "tag": "api",
+    "port": 10085,
+    "listen": "127.0.0.1",
+    "protocol": "dokodemo-door",
+    "settings": {
+        "address": "127.0.0.1"
+    }
 }
 """
 
@@ -321,6 +389,7 @@ def parseMultiple(lines):
             continue
 
         cc = vmess2client(load_TPL("CLIENT"), vc)
+        cc = setInbounds(cc)
 
         jsonpath = genPath(vc["ps"])
         while os.path.exists(jsonpath):
@@ -336,6 +405,55 @@ def jsonDump(obj, fobj):
     else:
         json.dump(obj, fobj, indent=4)
 
+def setInbounds(_c):
+    _ins = option.inbounds.split(",")
+    for _in in _ins:
+        _proto, _port = _in.split(":")
+        _tplKey = "in_"+_proto 
+        if _tplKey in TPL:
+            _inobj = load_TPL(_tplKey)
+            _inobj["port"] = int(_port)
+            _c["inbounds"].append(_inobj)
+
+            if _proto == "dns":
+                _c["dns"] = load_TPL("conf_dns")
+                _c["routing"]["rules"].append({
+                    "type": "field",
+                    "inboundTag": ["dns-in"],
+                    "outboundTag": "dns-out"
+                })
+                _c["outbounds"].append({
+                    "protocol": "dns",
+                    "tag": "dns-out"
+                })
+            
+            elif _proto == "api":
+                _c["api"] = {
+                    "tag": "api",
+                    "services": [ "HandlerService", "LoggerService", "StatsService" ]
+                }
+                _c["stats"] = {}
+                _c["policy"] = {
+                    "levels": {
+                        "0": {
+                            "statsUserUplink": True,
+                            "statsUserDownlink": True
+                        }
+                    },
+                    "system": {
+                        "statsInboundUplink": True,
+                        "statsInboundDownlink": True
+                    }
+                }
+                _c["routing"]["rules"].append({
+                    "type": "field",
+                    "inboundTag": ["api"],
+                    "outboundTag": "api"
+                })
+        else:
+            print("Error Inbound: " + _in)
+
+    return _c
 
 if __name__ == "__main__":
 
@@ -349,10 +467,14 @@ if __name__ == "__main__":
                         type=argparse.FileType('w'),
                         default=sys.stdout,
                         help="write output to file. default to stdout")
-    parser.add_argument('-ob', '--outbound',
+    parser.add_argument('-b', '--outbound',
                         action="store_true",
                         default=False,
                         help="only output as an outbound object.")
+    parser.add_argument('-i', '--inbounds',
+                        action="store",
+                        default="socks:1080,http:8123",
+                        help="inbounds usage, default: \"socks:1080,http:8123\". Available proto: socks,http,dns,transparent")
     parser.add_argument('vmess',
                         nargs='?',
                         help="A vmess:// link. If absent, reads a line from stdin.")
@@ -371,5 +493,7 @@ if __name__ == "__main__":
         if int(vc["v"]) != 2:
             print("ERROR: Vmess link version mismatch. This script only supports version 2.")
             sys.exit(1)
+
         cc = vmess2client(load_TPL("CLIENT"), vc)
+        cc = setInbounds(cc)
         jsonDump(cc, option.output)
