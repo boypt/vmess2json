@@ -6,7 +6,7 @@ Currently supports only V2rayN/NG links.
 
 ## Usage
 ```
-usage: vmess2json.py [-h] [-m] [-o OUTPUT] [vmess]
+usage: vmess2json.py [-h] [-m] [-o OUTPUT] [-b] [-i INBOUNDS] [vmess]
 
 vmess2json convert vmess link to client json config.
 
@@ -19,6 +19,10 @@ optional arguments:
                         file named by remark, saving in current dir (PWD).
   -o OUTPUT, --output OUTPUT
                         write output to file. default to stdout
+  -b, --outbound        only output as an outbound object.
+  -i INBOUNDS, --inbounds INBOUNDS
+                        inbounds usage, default: "socks:1080,http:8123".
+                        Available proto: socks,http,dns,transparent
 ```
 
 ## Example
@@ -26,14 +30,17 @@ optional arguments:
 # manualy check on a link
 echo "vmess://ABCDEFGabcdefg1234567890..." | vmess2json.py | vim -
 
-# write one file
-vmess2json.py -o /etc/v2ray/config.json vmess://ABCDEFGabcdefg1234567890...
+# write one file with http and socks inbounds
+vmess2json.py --inbounds http:8123,socks:7070 -o /etc/v2ray/config.json vmess://ABCDEFGabcdefg1234567890...
 
 # wirte multiple
 cat vmess_list.txt | vmess2json.py -m
 
-# parse a subscribe source
+# from a subscribe source
 curl -L https://vmess.subscribe.domian/sub | base64 -d | vmess2json.py -m
+
+# transparent proxy for router gateways with api (v2ctl StatsService)
+vmess2json.py --inbounds transparent:1080,dns:53,api:10005 -o /etc/v2ray/config.json vmess://ABCDEFGabcdefg1234567890...
 ```
 
 ## Reference
