@@ -231,7 +231,7 @@ def fill_basic(_c, _v):
     _vnext = _outbound["settings"]["vnext"][0]
 
     _vnext["address"]               = _v["add"]
-    _vnext["port"]                  = _v["port"]
+    _vnext["port"]                  = int(_v["port"])
     _vnext["users"][0]["id"]        = _v["id"]
     _vnext["users"][0]["alterId"]   = int(_v["aid"])
 
