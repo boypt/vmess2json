@@ -59,7 +59,7 @@ TPL["CLIENT"] = """
     ]
   },
   "routing": {
-    "domainStrategy": "AsIs",
+    "domainStrategy": "IPIfNonMatch",
     "rules": [
       {
         "type": "field",
