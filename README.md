@@ -6,7 +6,8 @@ Currently supports only V2rayN/NG links.
 
 ## Usage
 ```
-usage: vmess2json.py [-h] [-m] [-o OUTPUT] [-b] [-i INBOUNDS] [-s SECRET]
+usage: vmess2json.py [-h] [-m] [-o OUTPUT] [--outbound] [--inbounds INBOUNDS]
+                     [--secret SECRET] [--subscribe SUBSCRIBE]
                      [vmess]
 
 vmess2json convert vmess link to client json config.
@@ -20,13 +21,14 @@ optional arguments:
                         file named by remark, saving in current dir (PWD).
   -o OUTPUT, --output OUTPUT
                         write output to file. default to stdout
-  -b, --outbound        only output as an outbound object.
-  -i INBOUNDS, --inbounds INBOUNDS
-                        inbounds usage, default: "socks:1080,http:8123".
+  --outbound            only output as an outbound object.
+  --inbounds INBOUNDS   inbounds usage, default: "socks:1080,http:8123".
                         Available proto: socks,http,dns,mt,transparent
-  -s SECRET, --secret SECRET
-                        mtproto secret code. if unsepecified, a random one
+  --secret SECRET       mtproto secret code. if unsepecified, a random one
                         will be generated.
+  --subscribe SUBSCRIBE
+                        read from a subscribe url, output a menu to choose
+                        from.
 ```
 
 ## Example
@@ -40,8 +42,8 @@ vmess2json.py --inbounds http:8123,socks:7070,mt:8888 -o /etc/v2ray/config.json 
 # wirte multiple
 cat vmess_list.txt | vmess2json.py -m
 
-# from a subscribe source
-curl -L https://vmess.subscribe.domian/sub | base64 -d | vmess2json.py -m
+# choose from a subscribe source
+vmess2json.py --subscribe https://vmess.subscribe.domian/sub  -o /etc/v2ray/config.json
 
 # transparent proxy for router gateways with api (v2ctl StatsService)
 vmess2json.py --inbounds transparent:1080,dns:53,api:10005 -o /etc/v2ray/config.json vmess://ABCDEFGabcdefg1234567890...

@@ -7,6 +7,7 @@ import pprint
 import argparse
 import random
 import hashlib
+import urllib.request
 
 TPL = {}
 TPL["CLIENT"] = """
@@ -311,7 +312,7 @@ def parseVmess(vmesslink):
         if blen % 4 > 0:
             bs += "=" * (4 - blen % 4)
 
-        vms = base64.b64decode(bs)
+        vms = base64.b64decode(bs).decode()
         return json.loads(vms)
     else:
         raise Exception("vmess link invalid")
@@ -484,6 +485,32 @@ def fillInbounds(_c):
 
     return _c
 
+def select_subscribe(sub_url):
+    print("Reading from subscribe ...")
+    with urllib.request.urlopen(sub_url) as response:
+        _subs = response.read()
+        _subs = base64.b64decode(_subs).decode()
+        vmesses = []
+        for _v in _subs.split("\n"):
+            if _v.startswith("vmess://"):
+                _vinfo = parseVmess(_v)
+                vmesses.append({ "ps": _vinfo["ps"], "vm": _v })
+
+        print("Found {} items.".format(len(vmesses)))
+
+    for i, item in enumerate(vmesses):
+        print("[{}] - [{}]".format(i+1, item["ps"]))
+    print()
+
+    sel = input("Choose >>>")
+    idx = int(sel) - 1
+    item = vmesses[idx]["vm"]
+    
+    cc = vmess2client(load_TPL("CLIENT"), parseVmess(item))
+    cc = fillInbounds(cc)
+    jsonDump(cc, option.output)
+
+
 if __name__ == "__main__":
 
     parser = argparse.ArgumentParser(description="vmess2json convert vmess link to client json config.")
@@ -496,23 +523,31 @@ if __name__ == "__main__":
                         type=argparse.FileType('w'),
                         default=sys.stdout,
                         help="write output to file. default to stdout")
-    parser.add_argument('-b', '--outbound',
+    parser.add_argument('--outbound',
                         action="store_true",
                         default=False,
                         help="only output as an outbound object.")
-    parser.add_argument('-i', '--inbounds',
+    parser.add_argument('--inbounds',
                         action="store",
                         default="socks:1080,http:8123",
                         help="inbounds usage, default: \"socks:1080,http:8123\". Available proto: socks,http,dns,mt,transparent")
-    parser.add_argument('-s', '--secret',
+    parser.add_argument('--secret',
                         action="store",
                         default="",
                         help="mtproto secret code. if unsepecified, a random one will be generated.")
+    parser.add_argument('--subscribe',
+                        action="store",
+                        default="",
+                        help="read from a subscribe url, output a menu to choose from.")
     parser.add_argument('vmess',
                         nargs='?',
                         help="A vmess:// link. If absent, reads a line from stdin.")
 
     option = parser.parse_args()
+
+    if option.subscribe != "":
+        select_subscribe(option.subscribe)
+        sys.exit(0)
 
     if option.multiple:
         parseMultiple(sys.stdin.readlines())
