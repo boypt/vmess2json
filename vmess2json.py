@@ -250,9 +250,9 @@ TPL["conf_dns"] = """
 }
 """
 
-TPL["in_transparent"] = """
+TPL["in_tproxy"] = """
 {
-    "tag":"transparent-in",
+    "tag":"tproxy-in",
     "port": 1080,
     "protocol": "dokodemo-door",
     "settings": {
@@ -501,7 +501,7 @@ def select_subscribe(sub_url):
         print("[{}] - [{}]".format(i+1, item["ps"]))
     print()
 
-    sel = input("Choose >>>")
+    sel = input("Choose >>> ")
     idx = int(sel) - 1
     item = vmesses[idx]["vm"]
     
@@ -529,7 +529,7 @@ if __name__ == "__main__":
     parser.add_argument('--inbounds',
                         action="store",
                         default="socks:1080,http:8123",
-                        help="inbounds usage, default: \"socks:1080,http:8123\". Available proto: socks,http,dns,mt,transparent")
+                        help="inbounds usage, default: \"socks:1080,http:8123\". Available proto: socks,http,dns,mt,tproxy")
     parser.add_argument('--secret',
                         action="store",
                         default="",

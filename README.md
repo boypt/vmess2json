@@ -23,7 +23,7 @@ optional arguments:
                         write output to file. default to stdout
   --outbound            only output as an outbound object.
   --inbounds INBOUNDS   inbounds usage, default: "socks:1080,http:8123".
-                        Available proto: socks,http,dns,mt,transparent
+                        Available proto: socks,http,dns,mt,tproxy
   --secret SECRET       mtproto secret code. if unsepecified, a random one
                         will be generated.
   --subscribe SUBSCRIBE
@@ -46,7 +46,7 @@ cat vmess_list.txt | vmess2json.py -m
 vmess2json.py --subscribe https://vmess.subscribe.domian/sub  -o /etc/v2ray/config.json
 
 # transparent proxy for router gateways with api (v2ctl StatsService)
-vmess2json.py --inbounds transparent:1080,dns:53,api:10005 -o /etc/v2ray/config.json vmess://ABCDEFGabcdefg1234567890...
+vmess2json.py --inbounds tproxy:1080,dns:53,api:10005 -o /etc/v2ray/config.json vmess://ABCDEFGabcdefg1234567890...
 ```
 
 ## Reference
