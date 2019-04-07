@@ -30,7 +30,7 @@ TPL["CLIENT"] = """
             "users": [
               {
                 "email": "user@v2ray.com",
-                "id": "<TOBEFILLED>",
+                "id": "",
                 "alterId": 0,
                 "security": "auto"
               }
@@ -64,7 +64,8 @@ TPL["CLIENT"] = """
       {
         "type": "field",
         "ip": [
-          "geoip:private"
+          "geoip:private",
+          "geoip:cn"
         ],
         "outboundTag": "direct"
       },
@@ -72,13 +73,6 @@ TPL["CLIENT"] = """
         "type": "field",
         "domain": [
           "geosite:cn"
-        ],
-        "outboundTag": "direct"
-      },
-      {
-        "type": "field",
-        "domain": [
-          "geoip:cn"
         ],
         "outboundTag": "direct"
       }
