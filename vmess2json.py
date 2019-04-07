@@ -6,6 +6,7 @@ import base64
 import pprint
 import argparse
 import random
+import hashlib
 
 TPL = {}
 TPL["CLIENT"] = """
@@ -194,6 +195,31 @@ TPL["in_http"] = """
     "port": 8123,
     "listen": "::",
     "protocol": "http"
+}
+"""
+
+TPL["in_mt"] = """
+{
+    "tag": "mt-in",
+    "port": 6666,
+    "protocol": "mtproto",
+    "settings": {
+        "users": [
+            {
+                "secret": ""
+            }
+        ]
+    }
+}
+"""
+
+TPL["out_mt"] = """
+{
+    "tag": "mt-out",
+    "protocol": "mtproto",
+    "proxySettings": {
+        "tag": "proxy"
+    }
 }
 """
 
@@ -408,7 +434,7 @@ def jsonDump(obj, fobj):
 def fillInbounds(_c):
     _ins = option.inbounds.split(",")
     for _in in _ins:
-        _proto, _port = _in.split(":")
+        _proto, _port = _in.split(":", 2)
         _tplKey = "in_"+_proto 
         if _tplKey in TPL:
             _inobj = load_TPL(_tplKey)
@@ -434,22 +460,25 @@ def fillInbounds(_c):
                 }
                 _c["stats"] = {}
                 _c["policy"] = {
-                    "levels": {
-                        "0": {
-                            "statsUserUplink": True,
-                            "statsUserDownlink": True
-                        }
-                    },
-                    "system": {
-                        "statsInboundUplink": True,
-                        "statsInboundDownlink": True
-                    }
+                    "levels": { "0": { "statsUserUplink": True, "statsUserDownlink": True }},
+                    "system": { "statsInboundUplink": True, "statsInboundDownlink": True }
                 }
                 _c["routing"]["rules"].append({
                     "type": "field",
                     "inboundTag": ["api"],
                     "outboundTag": "api"
                 })
+
+            elif _proto == "mt":
+                _inobj["settings"]["users"][0]["secret"] = \
+                    option.secret if option.secret != "" else hashlib.md5(str(random.random()).encode()).hexdigest()
+                _c["outbounds"].append(load_TPL("out_mt"))
+                _c["routing"]["rules"].append({
+                    "type": "field",
+                    "inboundTag": ["mt-in"],
+                    "outboundTag": "mt-out"
+                })
+
         else:
             print("Error Inbound: " + _in)
 
@@ -474,7 +503,11 @@ if __name__ == "__main__":
     parser.add_argument('-i', '--inbounds',
                         action="store",
                         default="socks:1080,http:8123",
-                        help="inbounds usage, default: \"socks:1080,http:8123\". Available proto: socks,http,dns,transparent")
+                        help="inbounds usage, default: \"socks:1080,http:8123\". Available proto: socks,http,dns,mt,transparent")
+    parser.add_argument('-s', '--secret',
+                        action="store",
+                        default="",
+                        help="mtproto secret code. if unsepecified, a random one will be generated.")
     parser.add_argument('vmess',
                         nargs='?',
                         help="A vmess:// link. If absent, reads a line from stdin.")
