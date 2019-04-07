@@ -6,7 +6,8 @@ Currently supports only V2rayN/NG links.
 
 ## Usage
 ```
-usage: vmess2json.py [-h] [-m] [-o OUTPUT] [-b] [-i INBOUNDS] [vmess]
+usage: vmess2json.py [-h] [-m] [-o OUTPUT] [-b] [-i INBOUNDS] [-s SECRET]
+                     [vmess]
 
 vmess2json convert vmess link to client json config.
 
@@ -22,7 +23,10 @@ optional arguments:
   -b, --outbound        only output as an outbound object.
   -i INBOUNDS, --inbounds INBOUNDS
                         inbounds usage, default: "socks:1080,http:8123".
-                        Available proto: socks,http,dns,transparent
+                        Available proto: socks,http,dns,mt,transparent
+  -s SECRET, --secret SECRET
+                        mtproto secret code. if unsepecified, a random one
+                        will be generated.
 ```
 
 ## Example
@@ -31,7 +35,7 @@ optional arguments:
 echo "vmess://ABCDEFGabcdefg1234567890..." | vmess2json.py | vim -
 
 # write one file with http and socks inbounds
-vmess2json.py --inbounds http:8123,socks:7070 -o /etc/v2ray/config.json vmess://ABCDEFGabcdefg1234567890...
+vmess2json.py --inbounds http:8123,socks:7070,mt:8888 -o /etc/v2ray/config.json vmess://ABCDEFGabcdefg1234567890...
 
 # wirte multiple
 cat vmess_list.txt | vmess2json.py -m
