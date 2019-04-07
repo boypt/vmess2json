@@ -443,7 +443,7 @@ def fillInbounds(_c):
 
             if _proto == "dns":
                 _c["dns"] = load_TPL("conf_dns")
-                _c["routing"]["rules"].append({
+                _c["routing"]["rules"].insert(0, {
                     "type": "field",
                     "inboundTag": ["dns-in"],
                     "outboundTag": "dns-out"
@@ -463,7 +463,7 @@ def fillInbounds(_c):
                     "levels": { "0": { "statsUserUplink": True, "statsUserDownlink": True }},
                     "system": { "statsInboundUplink": True, "statsInboundDownlink": True }
                 }
-                _c["routing"]["rules"].append({
+                _c["routing"]["rules"].insert(0, {
                     "type": "field",
                     "inboundTag": ["api"],
                     "outboundTag": "api"
@@ -473,7 +473,7 @@ def fillInbounds(_c):
                 _inobj["settings"]["users"][0]["secret"] = \
                     option.secret if option.secret != "" else hashlib.md5(str(random.random()).encode()).hexdigest()
                 _c["outbounds"].append(load_TPL("out_mt"))
-                _c["routing"]["rules"].append({
+                _c["routing"]["rules"].insert(0, {
                     "type": "field",
                     "inboundTag": ["mt-in"],
                     "outboundTag": "mt-out"
