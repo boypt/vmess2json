@@ -259,6 +259,11 @@ TPL["in_transparent"] = """
         "network": "tcp,udp",
         "followRedirect": true
     },
+    "streamSettings": {
+        "sockopt": {
+            "tproxy":"tproxy"
+        }
+    },
     "sniffing": {
         "enabled": true,
         "destOverride": [
