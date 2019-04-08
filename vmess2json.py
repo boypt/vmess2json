@@ -538,8 +538,7 @@ if __name__ == "__main__":
                         action="store",
                         const="-1",
                         nargs='?',
-                        help="use together with -m/--multiple or --subscribe."
-                             "select one of the vmess link from multiple input. Argument is the index if reading from stdin.")
+                        help="use together with -m/--multiple or --subscribe. Select one of the vmess link from inputs. Argument is the index(1,2,3...).")
     parser.add_argument('-o', '--output',
                         type=argparse.FileType('w'),
                         default=sys.stdout,

@@ -6,8 +6,9 @@ Currently supports only V2rayN/NG links.
 
 ## Usage
 ```
-usage: vmess2json.py [-h] [-m] [-o OUTPUT] [--outbound] [--inbounds INBOUNDS]
-                     [--secret SECRET] [--subscribe SUBSCRIBE]
+usage: vmess2json.py [-h] [-m] [-s [SELECT]] [-o OUTPUT] [--outbound]
+                     [--inbounds INBOUNDS] [--secret SECRET]
+                     [--subscribe SUBSCRIBE]
                      [vmess]
 
 vmess2json convert vmess link to client json config.
@@ -19,6 +20,10 @@ optional arguments:
   -h, --help            show this help message and exit
   -m, --multiple        read multiple lines from stdin, each write to a json
                         file named by remark, saving in current dir (PWD).
+  -s [SELECT], --select [SELECT]
+                        use together with -m/--multiple or --subscribe. Select
+                        one of the vmess link from inputs. Argument is the
+                        index(1,2,3...).
   -o OUTPUT, --output OUTPUT
                         write output to file. default to stdout
   --outbound            only output as an outbound object.
