@@ -7,6 +7,7 @@ import pprint
 import argparse
 import random
 import hashlib
+import socket
 import urllib.request
 
 TPL = {}
@@ -484,25 +485,40 @@ def fillInbounds(_c):
 
     return _c
 
-def select_subscribe(sub_url):
+
+def read_subscribe(sub_url):
     print("Reading from subscribe ...")
+    socket.setdefaulttimeout(10)
     with urllib.request.urlopen(sub_url) as response:
         _subs = response.read()
-        _subs = base64.b64decode(_subs).decode()
-        vmesses = []
-        for _v in _subs.split("\n"):
-            if _v.startswith("vmess://"):
-                _vinfo = parseVmess(_v)
-                vmesses.append({ "ps": _vinfo["ps"], "vm": _v })
+        return base64.b64decode(_subs).decode().split("\n")
 
-        print("Found {} items.".format(len(vmesses)))
+def select_multiple(lines):
+    vmesses = []
+    for _v in lines:
+        if _v.startswith("vmess://"):
+            _vinfo = parseVmess(_v)
+            vmesses.append({ "ps": "[{ps}] {add}:{port}/{net}".format(**_vinfo), "vm": _v })
+
+    print("Found {} items.".format(len(vmesses)))
 
     for i, item in enumerate(vmesses):
-        print("[{}] - [{}]".format(i+1, item["ps"]))
+        print("[{}] - {}".format(i+1, item["ps"]))
+
     print()
 
-    sel = input("Choose >>> ")
-    idx = int(sel) - 1
+    if not sys.stdin.isatty() and os.path.exists('/dev/tty'):
+        sys.stdin.close()
+        sys.stdin = open('/dev/tty', 'r')
+
+    if sys.stdin.isatty():
+        sel = input("Choose >>> ")
+        idx = int(sel) - 1
+    elif int(option.select) > -1:
+        idx = int(option.select) - 1
+    else:
+        raise Exception("Current session cant open a tty to select. Specify the index to --select argument.")
+
     item = vmesses[idx]["vm"]
     
     cc = vmess2client(load_TPL("CLIENT"), parseVmess(item))
@@ -518,6 +534,12 @@ if __name__ == "__main__":
                         default=False,
                         help="read multiple lines from stdin, "
                              "each write to a json file named by remark, saving in current dir (PWD).")
+    parser.add_argument('-s', '--select',
+                        action="store",
+                        const="-1",
+                        nargs='?',
+                        help="use together with -m/--multiple or --subscribe."
+                             "select one of the vmess link from multiple input. Argument is the index if reading from stdin.")
     parser.add_argument('-o', '--output',
                         type=argparse.FileType('w'),
                         default=sys.stdout,
@@ -545,10 +567,15 @@ if __name__ == "__main__":
     option = parser.parse_args()
 
     if option.subscribe != "":
-        select_subscribe(option.subscribe)
+        if option.select != "":
+            select_multiple(read_subscribe(option.subscribe))
+        elif option.multiple and not option.select:
+            parseMultiple(read_subscribe(option.subscribe))
         sys.exit(0)
 
-    if option.multiple:
+    if option.multiple and option.select != "":
+        select_multiple(sys.stdin.readlines())
+    elif option.multiple and option.select == "":
         parseMultiple(sys.stdin.readlines())
     else:
         if option.vmess is None:
