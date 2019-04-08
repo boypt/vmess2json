@@ -577,7 +577,10 @@ if __name__ == "__main__":
     elif option.multiple and option.select == "":
         parseMultiple(sys.stdin.readlines())
     else:
-        if option.vmess is None:
+        if option.vmess is None and sys.stdin.isatty():
+            parser.print_help()
+            sys.exit(1)
+        elif option.vmess is None:
             vmess = sys.stdin.readline()
         else:
             vmess = option.vmess
