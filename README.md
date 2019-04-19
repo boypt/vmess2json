@@ -43,7 +43,7 @@ vmess2json.py --outbound vmess://ABCDEFGabcdefg1234567890...
 echo "vmess://ABCDEFGabcdefg1234567890..." | vmess2json.py --outbound
 
 # write to file with http and socks inbounds
-vmess2json.py --inbounds http:8123,socks:7070,mt:8888 -o /etc/v2ray/config.json vmess://ABCDEFGabcdefg1234567890...
+vmess2json.py --inbounds http:8123,socks:7070,mt:8888 -o /etc/v2ray/config.json vmess://ABCDEFGabcdefg123456...
 
 # wirte multiple files (per line)
 cat vmess_list.txt | vmess2json.py -m
@@ -52,10 +52,10 @@ cat vmess_list.txt | vmess2json.py -m
 vmess2json.py --subscribe https://vmess.subscribe.domian/sub  -o /etc/v2ray/config.json
 
 # or rather from a local source.
-cat source.txt | vmess2json.py --subscribe -  -o /etc/v2ray/config.json
+cat source.txt | vmess2json.py --subscribe -  -o /etc/v2ray/config.json && systemctl restart v2ray
 
 # transparent proxy for router gateways with api (v2ctl StatsService)
-vmess2json.py --inbounds tproxy:1080,dns:53,api:10005 -o /etc/v2ray/config.json vmess://ABCDEFGabcdefg1234567890...
+vmess2json.py --inbounds tproxy:1080,dns:53,api:10005 -o /etc/v2ray/config.json vmess://ABCDEFGabcdefg123456...
 ```
 
 ## Reference
