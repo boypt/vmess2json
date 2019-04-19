@@ -417,9 +417,9 @@ def fill_shadowsocks(_c, _v):
 
     _outbound = _c["outbounds"][0]
     _outbound["protocol"] = "shadowsocks"
-    _outbound["servers"] = [_ss]
+    _outbound["settings"]["servers"] = [_ss]
 
-    del _outbound["settings"]
+    del _outbound["settings"]["vnext"] 
     del _outbound["streamSettings"]
     del _outbound["mux"]
 
