@@ -7,8 +7,10 @@ import pprint
 import argparse
 import random
 import hashlib
-import socket
 import urllib.request
+
+vmscheme = "vmess://"
+ssscheme = "ss://"
 
 TPL = {}
 TPL["CLIENT"] = """
@@ -287,6 +289,75 @@ TPL["in_api"] = """
 }
 """
 
+TPL["out_ss"] = """
+{
+    "email": "user@ss",
+    "address": "",
+    "method": "",
+    "ota": false,
+    "password": "",
+    "port": 0
+}
+"""
+
+
+def parseLink(link):
+    if link.startswith(ssscheme):
+        return parseSs(link)
+    elif link.startswith(vmscheme):
+        return parseVmess(link)
+
+def parseSs(sslink):
+    RETOBJ = {
+        "v": "2",
+        "ps": "",
+        "add": "",
+        "port": "",
+        "id": "",
+        "aid": "",
+        "net": "shadowsocks",
+        "type": "",
+        "host": "",
+        "path": "",
+        "tls": ""
+    }
+    if sslink.startswith(ssscheme):
+        info = sslink[len(ssscheme):]
+        
+        if info.rfind("#") > 0:
+            info, RETOBJ["ps"] = info.split("#", 2)
+        
+        if info.find("@") < 0:
+            # old style link
+            #paddings
+            blen = len(info)
+            if blen % 4 > 0:
+                info += "=" * (4 - blen % 4)
+
+            info = base64.b64decode(info).decode()
+
+            atidx = info.rfind("@")
+            method, password = info[:atidx].split(":", 2)
+            addr, port = info[atidx+1:].split(":", 2)
+        else:
+            atidx = info.rfind("@")
+            addr, port = info[atidx+1:].split(":", 2)
+
+            info = info[:atidx]
+            blen = len(info)
+            if blen % 4 > 0:
+                info += "=" * (4 - blen % 4)
+
+            info = base64.b64decode(info).decode()
+            method, password = info.split(":", 2)
+
+        RETOBJ["add"] = addr
+        RETOBJ["port"] = port
+        RETOBJ["aid"] = method
+        RETOBJ["id"] = password
+        return RETOBJ
+
+
 def parseVmess(vmesslink):
     """
     return:
@@ -304,7 +375,6 @@ def parseVmess(vmesslink):
   "tls": ""
 }
     """
-    vmscheme = "vmess://"
     if vmesslink.startswith(vmscheme):
         bs = vmesslink[len(vmscheme):]
         #paddings
@@ -334,6 +404,24 @@ def fill_basic(_c, _v):
 
     if _v["tls"] == "tls":
         _outbound["streamSettings"]["security"] = "tls"
+
+    return _c
+
+def fill_shadowsocks(_c, _v):
+    _ss = load_TPL("out_ss")
+    _ss["email"] = _v["ps"] + "@ss"
+    _ss["address"] = _v["add"]
+    _ss["port"] = int(_v["port"])
+    _ss["method"] = _v["aid"]
+    _ss["password"] = _v["id"]
+
+    _outbound = _c["outbounds"][0]
+    _outbound["protocol"] = "shadowsocks"
+    _outbound["servers"] = [_ss]
+
+    del _outbound["settings"]
+    del _outbound["streamSettings"]
+    del _outbound["mux"]
 
     return _c
 
@@ -379,10 +467,13 @@ def fill_quic(_c, _v):
     return _c
 
 def vmess2client(_t, _v):
-    _c = fill_basic(_t, _v)
-
     _net = _v["net"]
     _type = _v["type"]
+
+    if _net == "shadowsocks":
+        return fill_shadowsocks(_t, _v)
+
+    _c = fill_basic(_t, _v)
 
     if _net == "kcp":
         return fill_kcp(_c, _v)
@@ -410,7 +501,7 @@ def parseMultiple(lines):
         return os.path.join(curdir, name)
 
     for line in lines:
-        vc = parseVmess(line.strip())
+        vc = parseLink(line.strip())
         if int(vc["v"]) != 2:
             print("Version mismatched, skiped. This script only supports version 2.")
             continue
@@ -488,16 +579,18 @@ def fillInbounds(_c):
 
 def read_subscribe(sub_url):
     print("Reading from subscribe ...")
-    socket.setdefaulttimeout(10)
-    with urllib.request.urlopen(sub_url) as response:
-        _subs = response.read()
-        return base64.b64decode(_subs).decode().split("\n")
+    if sub_url == "stdin" or sub_url == "-":
+        return base64.b64decode(sys.stdin.read()).decode().splitlines()
+    else:
+        with urllib.request.urlopen(sub_url) as response:
+            _subs = response.read()
+            return base64.b64decode(_subs).decode().splitlines()
 
 def select_multiple(lines):
     vmesses = []
     for _v in lines:
-        if _v.startswith("vmess://"):
-            _vinfo = parseVmess(_v)
+        _vinfo = parseLink(_v)
+        if _vinfo != None:
             vmesses.append({ "ps": "[{ps}] {add}:{port}/{net}".format(**_vinfo), "vm": _v })
 
     print("Found {} items.".format(len(vmesses)))
@@ -521,7 +614,7 @@ def select_multiple(lines):
 
     item = vmesses[idx]["vm"]
     
-    cc = vmess2client(load_TPL("CLIENT"), parseVmess(item))
+    cc = vmess2client(load_TPL("CLIENT"), parseLink(item))
     cc = fillInbounds(cc)
     jsonDump(cc, option.output)
 
@@ -585,7 +678,7 @@ if __name__ == "__main__":
         else:
             vmess = option.vmess
 
-        vc = parseVmess(vmess.strip())
+        vc = parseLink(vmess.strip())
         if int(vc["v"]) != 2:
             print("ERROR: Vmess link version mismatch. This script only supports version 2.")
             sys.exit(1)
