@@ -38,13 +38,14 @@ optional arguments:
 
 ## Example
 ```
-# manualy check on a link
-echo "vmess://ABCDEFGabcdefg1234567890..." | vmess2json.py | vim -
+# manualy check on a link (checkout outbound info)
+vmess2json.py --outbound vmess://ABCDEFGabcdefg1234567890...
+echo "vmess://ABCDEFGabcdefg1234567890..." | vmess2json.py --outbound
 
-# write one file with http and socks inbounds
+# write to file with http and socks inbounds
 vmess2json.py --inbounds http:8123,socks:7070,mt:8888 -o /etc/v2ray/config.json vmess://ABCDEFGabcdefg1234567890...
 
-# wirte multiple
+# wirte multiple files (per line)
 cat vmess_list.txt | vmess2json.py -m
 
 # choose from a subscribe source
@@ -60,4 +61,5 @@ vmess2json.py --inbounds tproxy:1080,dns:53,api:10005 -o /etc/v2ray/config.json 
 ## Reference
  * [V2Ray 一键安装脚本 by 233boy](https://github.com/233boy/v2ray)
  * [V2ray多用户管理脚本 by Jrohy](https://github.com/Jrohy/multi-v2ray)
- * [V2RayN by 2dust](https://github.com/2dust/v2rayN/blob/master/v2rayN/v2rayN/Handler/V2rayConfigHandler.cs)
+ * [V2rayN/NG 分享链接格式说明](https://github.com/2dust/v2rayN/wiki/%E5%88%86%E4%BA%AB%E9%93%BE%E6%8E%A5%E6%A0%BC%E5%BC%8F%E8%AF%B4%E6%98%8E(ver-2)) 
+ * [V2rayN/NG 订阅功能说明](https://github.com/2dust/v2rayN/wiki/%E8%AE%A2%E9%98%85%E5%8A%9F%E8%83%BD%E8%AF%B4%E6%98%8E)
