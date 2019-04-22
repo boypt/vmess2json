@@ -1,8 +1,7 @@
 # Vmess2Json
 
-Simple script parses `vmess://` links into client v2ray config json.
-
-Currently supports only V2rayN/NG links.
+Simple script parses `vmess://` links into client v2ray config json. (`ss://` links also supported)
+Currently only V2rayN/NG format is supported.
 
 ## Usage
 ```
@@ -37,6 +36,14 @@ optional arguments:
 ```
 
 ## Example
+
+Mostly this tools is used to choose from multiple nodes of v2ray/ss servers, from a subscribe source. Then restart v2ray.
+```
+curl -L -o source.txt https://vmess.subscribe.domian/sub
+cat source.txt | vmess2json.py --subscribe - --inbounds http:8123,socks:7070 -o /etc/v2ray/config.json && systemctl restart v2ray
+```
+
+And many more other usages...
 ```
 # manualy check on a link (checkout outbound info)
 vmess2json.py --outbound vmess://ABCDEFGabcdefg1234567890...
@@ -48,12 +55,8 @@ vmess2json.py --inbounds http:8123,socks:7070,mt:8888 -o /etc/v2ray/config.json 
 # wirte multiple files (per line)
 cat vmess_list.txt | vmess2json.py -m
 
-# choose from a subscribe source
+# choose from a online subscribe source
 vmess2json.py --subscribe https://vmess.subscribe.domian/sub  -o /etc/v2ray/config.json
-
-# or from a local source. Mostly this is what normal user wants.
-curl -L -o source.txt https://vmess.subscribe.domian/sub
-cat source.txt | vmess2json.py --subscribe - --inbounds http:8123,socks:7070 -o /etc/v2ray/config.json && systemctl restart v2ray
 
 # transparent proxy for router gateways with api (v2ctl StatsService)
 vmess2json.py --inbounds tproxy:1080,dns:53,api:10005 -o /etc/v2ray/config.json vmess://ABCDEFGabcdefg123456...
