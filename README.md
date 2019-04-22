@@ -51,8 +51,9 @@ cat vmess_list.txt | vmess2json.py -m
 # choose from a subscribe source
 vmess2json.py --subscribe https://vmess.subscribe.domian/sub  -o /etc/v2ray/config.json
 
-# or rather from a local source.
-cat source.txt | vmess2json.py --subscribe -  -o /etc/v2ray/config.json && systemctl restart v2ray
+# or from a local source. Mostly this is what normal user wants.
+curl -L -o source.txt https://vmess.subscribe.domian/sub
+cat source.txt | vmess2json.py --subscribe - --inbounds http:8123,socks:7070 -o /etc/v2ray/config.json && systemctl restart v2ray
 
 # transparent proxy for router gateways with api (v2ctl StatsService)
 vmess2json.py --inbounds tproxy:1080,dns:53,api:10005 -o /etc/v2ray/config.json vmess://ABCDEFGabcdefg123456...
