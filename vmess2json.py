@@ -518,6 +518,18 @@ def parseMultiple(lines):
             jsonDump(cc, f)
 
 def jsonDump(obj, fobj):
+    if option.update is not None:
+        oconf = json.load(option.update)
+        if "outbounds" not in oconf:
+            raise KeyError("outbounds not found in {}".format(option.update.name))
+
+        oconf["outbounds"][0] = obj["outbounds"][0]
+        option.update.close()
+        with open(option.update.name, 'w') as f:
+            json.dump(oconf, f, indent=4)
+        print("Updated")
+        return
+
     if option.outbound:
         json.dump(obj["outbounds"][0], fobj, indent=4)
     else:
@@ -636,6 +648,9 @@ if __name__ == "__main__":
                         type=argparse.FileType('w'),
                         default=sys.stdout,
                         help="write output to file. default to stdout")
+    parser.add_argument('-u', '--update',
+                        type=argparse.FileType('r'),
+                        help="update a config.json, changing the default outbound setting.")
     parser.add_argument('--outbound',
                         action="store_true",
                         default=False,
