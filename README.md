@@ -25,6 +25,9 @@ optional arguments:
                         index(1,2,3...).
   -o OUTPUT, --output OUTPUT
                         write output to file. default to stdout
+  -u UPDATE, --update UPDATE
+                        update a config.json, changing the default outbound
+                        setting.
   --outbound            only output as an outbound object.
   --inbounds INBOUNDS   inbounds usage, default: "socks:1080,http:8123".
                         Available proto: socks,http,dns,mt,tproxy
@@ -40,7 +43,14 @@ optional arguments:
 Mostly this tools is used to choose from multiple nodes of v2ray/ss servers, from a subscribe source. Then restart v2ray.
 ```
 curl -L -o source.txt https://vmess.subscribe.domian/sub
-cat source.txt | vmess2json.py --subscribe - --inbounds http:8123,socks:7070 -o /etc/v2ray/config.json && systemctl restart v2ray
+cat source.txt | vmess2json.py --subscribe - --inbounds http:8123,socks:7070 -o /etc/v2ray/config.json
+systemctl restart v2ray
+```
+
+Or just update the default outbound for a well writted `config.json`.
+```
+cat source.txt | vmess2json.py --subscribe - --update /etc/v2ray/config.json
+systemctl restart v2ray
 ```
 
 And many more other usages...
