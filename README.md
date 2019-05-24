@@ -36,17 +36,25 @@ optional arguments:
 
 ## Example
 
-Common usage is to choose node from a subscribe source.
+Most common usage is to choose node from a subscribe source.
 ```
-wget https://vmess.subscribe.domian/sub.txt
-cat sub.txt | vmess2json.py --inbounds http:8123,socks:7070 --output /etc/v2ray/config.json
-systemctl restart v2ray
+$ wget https://vmess.subscribe.domian/sub.txt
+$ cat sub.txt | sudo vmess2json.py --inbounds http:8123,socks:7070 --output /etc/v2ray/config.json
+Found 5 items.
+[1] - [hk1] hk1.domain.co:8388/shadowsocks
+[2] - [ca/kcp4] ca.domain.ml:17738/kcp
+[3] - [ca/kcp6] ca6.domain.ml:17738/kcp
+[4] - [ca/cf] caf.domain.ml:443/ws
+[5] - [lit/ws] lit6.domain.ml:443/ws
+
+Choose >>> 5
+$ sudo systemctl restart v2ray
 ```
 
 Or just update the `outbound` object for a well written `config.json`.
 ```
-cat sub.txt | vmess2json.py --update /etc/v2ray/config.json
-systemctl restart v2ray
+$ cat sub.txt | sudo vmess2json.py --update /etc/v2ray/config.json
+$ sudo systemctl restart v2ray
 ```
 
 And many more other usages...
