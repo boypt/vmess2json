@@ -7,6 +7,7 @@ import pprint
 import argparse
 import random
 import hashlib
+import binascii
 import urllib.request
 
 vmscheme = "vmess://"
@@ -492,12 +493,12 @@ def vmess2client(_t, _v):
         raise Exception("this link seem invalid to the script, please report to dev.")
 
 
-def parseMultiple(lines):
+def parse_multiple(lines):
     def genPath(ps, rand=False):
         # add random in case list "ps" share common names
         curdir = os.environ.get("PWD", '/tmp/')
         rnd = "-{}".format(random.randrange(100)) if rand else ""
-        name = "{}{}.json".format(vc["ps"], rnd)
+        name = "{}{}.json".format(vc["ps"].replace("/", "_").replace(".", "-"), rnd)
         return os.path.join(curdir, name)
 
     for line in lines:
@@ -591,12 +592,9 @@ def fillInbounds(_c):
 
 def read_subscribe(sub_url):
     print("Reading from subscribe ...")
-    if sub_url == "stdin" or sub_url == "-":
-        return base64.b64decode(sys.stdin.read()).decode().splitlines()
-    else:
-        with urllib.request.urlopen(sub_url) as response:
-            _subs = response.read()
-            return base64.b64decode(_subs).decode().splitlines()
+    with urllib.request.urlopen(sub_url) as response:
+        _subs = response.read()
+        return base64.b64decode(_subs).decode().splitlines()
 
 def select_multiple(lines):
     vmesses = []
@@ -630,31 +628,39 @@ def select_multiple(lines):
     cc = fillInbounds(cc)
     jsonDump(cc, option.output)
 
+def detect_stdin():
+    if sys.stdin.isatty():
+        return None
+    stdindata = sys.stdin.read()
+    try:
+        lines = base64.b64decode(stdindata).decode().splitlines()
+        option.subscribe = "-"
+        return lines
+    except (binascii.Error, UnicodeDecodeError):
+        return stdindata.splitlines()
 
 if __name__ == "__main__":
 
     parser = argparse.ArgumentParser(description="vmess2json convert vmess link to client json config.")
-    parser.add_argument('-m', '--multiple',
+    parser.add_argument('--parse_all',
                         action="store_true",
                         default=False,
-                        help="read multiple lines from stdin, "
-                             "each write to a json file named by remark, saving in current dir (PWD).")
-    parser.add_argument('-s', '--select',
+                        help="parse all input vmess lines and write each into .json files")
+    parser.add_argument('--subscribe',
                         action="store",
-                        const="-1",
-                        nargs='?',
-                        help="use together with -m/--multiple or --subscribe. Select one of the vmess link from inputs. Argument is the index(1,2,3...).")
+                        default="",
+                        help="read from a subscribe url, output a menu to choose from.")
     parser.add_argument('-o', '--output',
                         type=argparse.FileType('w'),
                         default=sys.stdout,
                         help="write output to file. default to stdout")
     parser.add_argument('-u', '--update',
                         type=argparse.FileType('r'),
-                        help="update a config.json, changing the default outbound setting.")
+                        help="update a config.json, only change the first outbound object.")
     parser.add_argument('--outbound',
                         action="store_true",
                         default=False,
-                        help="only output as an outbound object.")
+                        help="only output the outbound object.")
     parser.add_argument('--inbounds',
                         action="store",
                         default="socks:1080,http:8123",
@@ -663,41 +669,35 @@ if __name__ == "__main__":
                         action="store",
                         default="",
                         help="mtproto secret code. if unsepecified, a random one will be generated.")
-    parser.add_argument('--subscribe',
-                        action="store",
-                        default="",
-                        help="read from a subscribe url, output a menu to choose from.")
     parser.add_argument('vmess',
                         nargs='?',
                         help="A vmess:// link. If absent, reads a line from stdin.")
 
     option = parser.parse_args()
-
-    if option.subscribe != "":
-        if option.select != "":
-            select_multiple(read_subscribe(option.subscribe))
-        elif option.multiple and not option.select:
-            parseMultiple(read_subscribe(option.subscribe))
+    stdin_data = detect_stdin()
+    
+    if option.parse_all and stdin_data is not None:
+        parse_multiple(stdin_data)
         sys.exit(0)
 
-    if option.multiple and option.select != "":
-        select_multiple(sys.stdin.readlines())
-    elif option.multiple and option.select == "":
-        parseMultiple(sys.stdin.readlines())
-    else:
-        if option.vmess is None and sys.stdin.isatty():
-            parser.print_help()
-            sys.exit(1)
-        elif option.vmess is None:
-            vmess = sys.stdin.readline()
+    if len(option.subscribe) > 0:
+        # if stdin be base64 decoded, subscribe from stdin is implicted.
+        if option.subscribe == "-":
+            select_multiple(stdin_data)
         else:
-            vmess = option.vmess
+            select_multiple(read_subscribe(option.subscribe))
+        sys.exit(0)
 
-        vc = parseLink(vmess.strip())
-        if int(vc["v"]) != 2:
-            print("ERROR: Vmess link version mismatch. This script only supports version 2.")
-            sys.exit(1)
+    if option.vmess is None and stdin_data is None:
+        parser.print_help()
+        sys.exit(1)
+    
+    vmess = option.vmess if option.vmess is not None else stdin_data[0]
+    vc = parseLink(vmess.strip())
+    if int(vc["v"]) != 2:
+        print("ERROR: Vmess link version mismatch. This script only supports version 2.")
+        sys.exit(1)
 
-        cc = vmess2client(load_TPL("CLIENT"), vc)
-        cc = fillInbounds(cc)
-        jsonDump(cc, option.output)
+    cc = vmess2client(load_TPL("CLIENT"), vc)
+    cc = fillInbounds(cc)
+    jsonDump(cc, option.output)
