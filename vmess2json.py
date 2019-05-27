@@ -680,13 +680,17 @@ if __name__ == "__main__":
         parse_multiple(stdin_data)
         sys.exit(0)
 
+    # if stdin can be base64 decoded, subscribe from stdin is implicted.
     if len(option.subscribe) > 0:
-        # if stdin be base64 decoded, subscribe from stdin is implicted.
-        if option.subscribe == "-":
-            select_multiple(stdin_data)
-        else:
-            select_multiple(read_subscribe(option.subscribe))
-        sys.exit(0)
+        try:
+            if stdin_data is None:
+                select_multiple(read_subscribe(option.subscribe))
+            else:
+                select_multiple(stdin_data)
+        except (EOFError, KeyboardInterrupt):
+            print("Bye.")
+        finally:
+            sys.exit(0)
 
     if option.vmess is None and stdin_data is None:
         parser.print_help()
