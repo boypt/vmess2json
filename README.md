@@ -30,9 +30,8 @@ optional arguments:
   --outbound            output the outbound object only.
   --inbounds INBOUNDS   include inbounds objects, default:
                         "socks:1080,http:8123". Available proto:
-                        socks,http,dns,mt,tproxy
-  --secret SECRET       mtproto secret code. if omited, a random one will be
-                        generated.
+                        socks,http,dns,mt,tproxy . For mtproto with custom
+                        password: mt:7788:xxxxxxxxxxxxxxx
 ```
 
 ## Example

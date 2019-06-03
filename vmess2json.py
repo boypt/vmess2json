@@ -539,12 +539,10 @@ def jsonDump(obj, fobj):
 def fillInbounds(_c):
     _ins = option.inbounds.split(",")
     for _in in _ins:
-        _proto, _port = _in.split(":", 2)
+        _proto, _port = _in.split(":", maxsplit=1)
         _tplKey = "in_"+_proto 
         if _tplKey in TPL:
             _inobj = load_TPL(_tplKey)
-            _inobj["port"] = int(_port)
-            _c["inbounds"].append(_inobj)
 
             if _proto == "dns":
                 _c["dns"] = load_TPL("conf_dns")
@@ -575,8 +573,13 @@ def fillInbounds(_c):
                 })
 
             elif _proto == "mt":
-                _inobj["settings"]["users"][0]["secret"] = \
-                    option.secret if option.secret != "" else hashlib.md5(str(random.random()).encode()).hexdigest()
+                mtinfo = _port.split(":", maxsplit=1)
+                if len(mtinfo) == 2:
+                    _port, _secret = mtinfo
+                else:
+                    _secret = hashlib.md5(str(random.random()).encode()).hexdigest()
+
+                _inobj["settings"]["users"][0]["secret"] = _secret
                 _c["outbounds"].append(load_TPL("out_mt"))
                 _c["routing"]["rules"].insert(0, {
                     "type": "field",
@@ -584,6 +587,8 @@ def fillInbounds(_c):
                     "outboundTag": "mt-out"
                 })
 
+            _inobj["port"] = int(_port)
+            _c["inbounds"].append(_inobj)
         else:
             print("Error Inbound: " + _in)
 
@@ -664,11 +669,8 @@ if __name__ == "__main__":
     parser.add_argument('--inbounds',
                         action="store",
                         default="socks:1080,http:8123",
-                        help="include inbounds objects, default: \"socks:1080,http:8123\". Available proto: socks,http,dns,mt,tproxy")
-    parser.add_argument('--secret',
-                        action="store",
-                        default="",
-                        help="mtproto secret code. if omited, a random one will be generated.")
+                        help="include inbounds objects, default: \"socks:1080,http:8123\". Available proto: socks,http,dns,mt,tproxy . "
+                            "For mtproto with custom password:  mt:7788:xxxxxxxxxxxxxxx")
     parser.add_argument('vmess',
                         nargs='?',
                         help="A vmess:// link. If absent, reads a line from stdin.")
