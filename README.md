@@ -17,21 +17,22 @@ positional arguments:
 
 optional arguments:
   -h, --help            show this help message and exit
-  --parse_all           parse all input vmess lines and write each into .json
-                        files
+  --parse_all           parse all vmess:// lines (or base64 encoded) from
+                        stdin and write each into .json files
   --subscribe SUBSCRIBE
-                        read from a subscribe url, output a menu to choose
-                        from.
+                        read from a subscribe url, display a menu to choose
+                        nodes
   -o OUTPUT, --output OUTPUT
-                        write output to file. default to stdout
+                        write to file. default to stdout
   -u UPDATE, --update UPDATE
-                        update a config.json, only change the first outbound
+                        update a config.json, changes only the first outbound
                         object.
-  --outbound            only output the outbound object.
-  --inbounds INBOUNDS   inbounds usage, default: "socks:1080,http:8123".
-                        Available proto: socks,http,dns,mt,tproxy
-  --secret SECRET       mtproto secret code. if unsepecified, a random one
-                        will be generated.
+  --outbound            output the outbound object only.
+  --inbounds INBOUNDS   include inbounds objects, default:
+                        "socks:1080,http:8123". Available proto:
+                        socks,http,dns,mt,tproxy
+  --secret SECRET       mtproto secret code. if omited, a random one will be
+                        generated.
 ```
 
 ## Example

@@ -645,30 +645,30 @@ if __name__ == "__main__":
     parser.add_argument('--parse_all',
                         action="store_true",
                         default=False,
-                        help="parse all input vmess lines and write each into .json files")
+                        help="parse all vmess:// lines (or base64 encoded) from stdin and write each into .json files")
     parser.add_argument('--subscribe',
                         action="store",
                         default="",
-                        help="read from a subscribe url, output a menu to choose from.")
+                        help="read from a subscribe url, display a menu to choose nodes")
     parser.add_argument('-o', '--output',
                         type=argparse.FileType('w'),
                         default=sys.stdout,
-                        help="write output to file. default to stdout")
+                        help="write to file. default to stdout")
     parser.add_argument('-u', '--update',
                         type=argparse.FileType('r'),
-                        help="update a config.json, only change the first outbound object.")
+                        help="update a config.json, changes only the first outbound object.")
     parser.add_argument('--outbound',
                         action="store_true",
                         default=False,
-                        help="only output the outbound object.")
+                        help="output the outbound object only.")
     parser.add_argument('--inbounds',
                         action="store",
                         default="socks:1080,http:8123",
-                        help="inbounds usage, default: \"socks:1080,http:8123\". Available proto: socks,http,dns,mt,tproxy")
+                        help="include inbounds objects, default: \"socks:1080,http:8123\". Available proto: socks,http,dns,mt,tproxy")
     parser.add_argument('--secret',
                         action="store",
                         default="",
-                        help="mtproto secret code. if unsepecified, a random one will be generated.")
+                        help="mtproto secret code. if omited, a random one will be generated.")
     parser.add_argument('vmess',
                         nargs='?',
                         help="A vmess:// link. If absent, reads a line from stdin.")
