@@ -648,9 +648,7 @@ def detect_stdin():
         return stdindata.splitlines()
 
 if __name__ == "__main__":
-    import ptvsd
-    ptvsd.enable_attach(address=('localhost', 5678), redirect_output=True)
-    ptvsd.wait_for_attach()
+
     parser = argparse.ArgumentParser(description="vmess2json convert vmess link to client json config.")
     parser.add_argument('--parse_all',
                         action="store_true",
