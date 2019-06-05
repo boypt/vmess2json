@@ -8,7 +8,9 @@ import argparse
 import random
 import hashlib
 import binascii
+import traceback
 import urllib.request
+import urllib.parse
 
 vmscheme = "vmess://"
 ssscheme = "ss://"
@@ -326,7 +328,8 @@ def parseSs(sslink):
         info = sslink[len(ssscheme):]
         
         if info.rfind("#") > 0:
-            info, RETOBJ["ps"] = info.split("#", 2)
+            info, _ps = info.split("#", 2)
+            RETOBJ["ps"] = urllib.parse.unquote(_ps)
         
         if info.find("@") < 0:
             # old style link
@@ -645,7 +648,9 @@ def detect_stdin():
         return stdindata.splitlines()
 
 if __name__ == "__main__":
-
+    import ptvsd
+    ptvsd.enable_attach(address=('localhost', 5678), redirect_output=True)
+    ptvsd.wait_for_attach()
     parser = argparse.ArgumentParser(description="vmess2json convert vmess link to client json config.")
     parser.add_argument('--parse_all',
                         action="store_true",
@@ -691,6 +696,8 @@ if __name__ == "__main__":
                 select_multiple(stdin_data)
         except (EOFError, KeyboardInterrupt):
             print("Bye.")
+        except:
+            traceback.print_exc()
         finally:
             sys.exit(0)
 
