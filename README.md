@@ -32,6 +32,7 @@ optional arguments:
                         "socks:1080,http:8123". Available proto:
                         socks,http,dns,mt,tproxy . For mtproto with custom
                         password: mt:7788:xxxxxxxxxxxxxxx
+  --localdns LOCALDNS   use domestic DNS server for geosite:cn list domains.
 ```
 
 ## Example

@@ -59,9 +59,8 @@ TPL["CLIENT"] = """
   ],
   "dns": {
     "servers": [
-      "8.8.8.8",
-      "8.8.4.4",
-      "1.1.1.1"
+      "1.0.0.1",
+      "localhost"
     ]
   },
   "routing": {
@@ -510,8 +509,7 @@ def parse_multiple(lines):
             print("Version mismatched, skiped. This script only supports version 2.")
             continue
 
-        cc = vmess2client(load_TPL("CLIENT"), vc)
-        cc = fillInbounds(cc)
+        cc = fill_inbounds(fill_dns(vmess2client(load_TPL("CLIENT"), vc)))
 
         jsonpath = genPath(vc["ps"])
         while os.path.exists(jsonpath):
@@ -539,7 +537,7 @@ def jsonDump(obj, fobj):
     else:
         json.dump(obj, fobj, indent=4)
 
-def fillInbounds(_c):
+def fill_inbounds(_c):
     _ins = option.inbounds.split(",")
     for _in in _ins:
         _proto, _port = _in.split(":", maxsplit=1)
@@ -597,6 +595,22 @@ def fillInbounds(_c):
 
     return _c
 
+def fill_dns(_c):
+    if option.localdns != "":
+        dns = {
+            "address": option.localdns,
+            "port": 53,
+            "domains": ["geosite:cn"]
+        }
+        ## 当某个 DNS 服务器指定的域名列表匹配了当前要查询的域名，V2Ray 会优先使用这个 
+        ## DNS 服务器进行查询，否则按从上往下的顺序进行查询。
+        ## 
+        _c["dns"]["servers"].insert(1, dns)
+
+        ## 若要使 DNS 服务生效，需要配置路由功能中的 domainStrategy。
+        _c["routing"]["domainStrategy"] = "IPOnDemand"
+    
+    return _c
 
 def read_subscribe(sub_url):
     print("Reading from subscribe ...")
@@ -632,8 +646,7 @@ def select_multiple(lines):
 
     item = vmesses[idx]["vm"]
     
-    cc = vmess2client(load_TPL("CLIENT"), parseLink(item))
-    cc = fillInbounds(cc)
+    cc = fill_inbounds(fill_dns(vmess2client(load_TPL("CLIENT"), parseLink(item))))
     jsonDump(cc, option.output)
 
 def detect_stdin():
@@ -674,6 +687,10 @@ if __name__ == "__main__":
                         default="socks:1080,http:8123",
                         help="include inbounds objects, default: \"socks:1080,http:8123\". Available proto: socks,http,dns,mt,tproxy . "
                             "For mtproto with custom password:  mt:7788:xxxxxxxxxxxxxxx")
+    parser.add_argument('--localdns',
+                        action="store",
+                        default="",
+                        help="use domestic DNS server for geosite:cn list domains.")
     parser.add_argument('vmess',
                         nargs='?',
                         help="A vmess:// link. If absent, reads a line from stdin.")
@@ -709,6 +726,5 @@ if __name__ == "__main__":
         print("ERROR: Vmess link version mismatch. This script only supports version 2.")
         sys.exit(1)
 
-    cc = vmess2client(load_TPL("CLIENT"), vc)
-    cc = fillInbounds(cc)
+    cc = fill_inbounds(fill_dns(vmess2client(load_TPL("CLIENT"), vc)))
     jsonDump(cc, option.output)
