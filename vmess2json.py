@@ -308,6 +308,9 @@ def parseLink(link):
         return parseSs(link)
     elif link.startswith(vmscheme):
         return parseVmess(link)
+    else:
+        print("ERROR: This script supports only vmess://(N/NG) and ss:// links")
+        return None
 
 def parseSs(sslink):
     RETOBJ = {
@@ -505,6 +508,9 @@ def parse_multiple(lines):
 
     for line in lines:
         vc = parseLink(line.strip())
+        if vc is None:
+            continue
+
         if int(vc["v"]) != 2:
             print("Version mismatched, skiped. This script only supports version 2.")
             continue
@@ -622,7 +628,7 @@ def select_multiple(lines):
     vmesses = []
     for _v in lines:
         _vinfo = parseLink(_v)
-        if _vinfo != None:
+        if _vinfo is not None:
             vmesses.append({ "ps": "[{ps}] {add}:{port}/{net}".format(**_vinfo), "vm": _v })
 
     print("Found {} items.".format(len(vmesses)))
@@ -646,7 +652,10 @@ def select_multiple(lines):
 
     item = vmesses[idx]["vm"]
     
-    cc = fill_inbounds(fill_dns(vmess2client(load_TPL("CLIENT"), parseLink(item))))
+    ln = parseLink(item)
+    if ln is None:
+        return
+    cc = fill_inbounds(fill_dns(vmess2client(load_TPL("CLIENT"), ln)))
     jsonDump(cc, option.output)
 
 def detect_stdin():
@@ -722,8 +731,7 @@ if __name__ == "__main__":
     
     vmess = option.vmess if option.vmess is not None else stdin_data[0]
     vc = parseLink(vmess.strip())
-    if int(vc["v"]) != 2:
-        print("ERROR: Vmess link version mismatch. This script only supports version 2.")
+    if vc is None:
         sys.exit(1)
 
     cc = fill_inbounds(fill_dns(vmess2client(load_TPL("CLIENT"), vc)))
