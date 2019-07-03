@@ -39,7 +39,7 @@ optional arguments:
 
 Most common usage is to choose node from a subscribe source.
 ```
-$ wget https://vmess.subscribe.domian/sub.txt
+$ wget https://vmess.subscribe.domain/sub.txt
 $ cat sub.txt | sudo vmess2json.py --inbounds http:8123,socks:7070 --output /etc/v2ray/config.json
 Found 5 items.
 [1] - [hk1] hk1.domain.co:8388/shadowsocks
@@ -71,5 +71,5 @@ vmess2json.py --inbounds http:8123,socks:7070,mt:8888 -o /etc/v2ray/config.json 
 cat vmess_list.txt | vmess2json.py --parse_all
 
 # choose from an online subscribe source
-vmess2json.py --subscribe https://vmess.subscribe.domian/sub.txt -o /etc/v2ray/config.json
+vmess2json.py --subscribe https://vmess.subscribe.domain/sub.txt -o /etc/v2ray/config.json
 ```
