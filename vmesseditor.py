@@ -22,43 +22,26 @@ def parseLink(link):
     elif link.startswith(vmscheme):
         return parseVmess(link)
     else:
-        print("ERROR: found unsupported line: "+link)
+        print("ERROR: unsupported line: "+link)
         return None
 
 def item2link(item):
     if item["net"] == "shadowsocks":
-        ps = item["ps"]
-        addr = item["add"]
-        port = item["port"]
-        method = item["aid"]
-        password = ["id"]
-        auth = base64.b64encode("{}:{}".format(method, password).encode()).decode()
-        sslink = "ss://{}@{}:{}#{}".format(auth, addr, port, urllib.parse.quote(ps))
+        auth = base64.b64encode("{method}:{password}".format(**item).encode()).decode()
+        addr = "{add}:{port}".format(**item)
+        sslink = "ss://{}@{}#{}".format(auth, addr, urllib.parse.quote(item["ps"]))
         return sslink
     else:
         return "vmess://{}".format(base64.b64encode(json.dumps(item).encode()).decode()) 
 
 
 def parseSs(sslink):
-    RETOBJ = {
-        "v": "2",
-        "ps": "",
-        "add": "",
-        "port": "",
-        "id": "",
-        "aid": "",
-        "net": "shadowsocks",
-        "type": "",
-        "host": "",
-        "path": "",
-        "tls": ""
-    }
     if sslink.startswith(ssscheme):
+        ps = ""
         info = sslink[len(ssscheme):]
         
         if info.rfind("#") > 0:
-            info, _ps = info.split("#", 2)
-            RETOBJ["ps"] = urllib.parse.unquote(_ps)
+            info, ps = info.split("#", 2)
         
         if info.find("@") < 0:
             # old style link
@@ -84,30 +67,9 @@ def parseSs(sslink):
             info = base64.b64decode(info).decode()
             method, password = info.split(":", 2)
 
-        RETOBJ["add"] = addr
-        RETOBJ["port"] = port
-        RETOBJ["aid"] = method
-        RETOBJ["id"] = password
-        return RETOBJ
-
+        return dict(net="shadowsocks", add=addr, port=port, method=method, password=password, ps=ps)
 
 def parseVmess(vmesslink):
-    """
-    return:
-{
-  "v": "2",
-  "ps": "remark",
-  "add": "4.3.2.1",
-  "port": "1024",
-  "id": "xxx",
-  "aid": "64",
-  "net": "tcp",
-  "type": "none",
-  "host": "",
-  "path": "",
-  "tls": ""
-}
-    """
     if vmesslink.startswith(vmscheme):
         bs = vmesslink[len(vmscheme):]
         #paddings
@@ -121,20 +83,17 @@ def parseVmess(vmesslink):
         raise Exception("vmess link invalid")
 
 
-def read_subscribe(sub_url):
-    print("Reading from subscribe ...")
-    with urllib.request.urlopen(sub_url) as response:
-        _subs = response.read()
-        return base64.b64decode(_subs).decode().splitlines()
+def menu_item(vinfo):
+    return "[{ps}] {add}:{port}/{net}".format(**vinfo)
 
-def list_multiple(lines):
+def menu_loop(lines):
     vmesses = []
     for _v in lines:
         _vinfo = parseLink(_v)
         if _vinfo is not None:
             vmesses.append({ 
-                "ps": "[{ps}] {add}:{port}/{net}".format(**_vinfo),
-                "vm": _v,
+                "menu": menu_item(_vinfo),
+                "link": _v,
                 "info": _vinfo
             })
 
@@ -142,66 +101,69 @@ def list_multiple(lines):
 
         print("==============================================================")
         for i, item in enumerate(vmesses):
-            print("[{}] - {}".format(i+1, item["ps"]))
+            print("[{:^3}] - {}".format(i, item["menu"]))
 
-        if not sys.stdin.isatty() and os.path.exists('/dev/tty'):
-            sys.stdin.close()
-            sys.stdin = open('/dev/tty', 'r')
+        print("""==============================================================
+Enter index digit to edit:
+Other commands: Sort(o), Sort by desc(d), Write(w), Delete XX(dXX)
+Quit without saving(q)
+""")
 
-        if sys.stdin.isatty():
-            print("==============================================================")
-            print("Enter index digit to edit")
-            print("Or other commands: Sort(o), Sort by desc(d), Write and Exit(w), Delete XX(dXX)")
-            print("Quit(q)")
-
+        try:
             sel = input("Choose >>> ")
             if sel.isdigit():
-                idx = int(sel) - 1
+                idx = int(sel)
                 edit_item(vmesses, idx)
-                os.system("clear")
             elif sel == "o":
                 vmesses = sorted(vmesses, key=lambda i:i["ps"])
             elif sel == "d":
                 vmesses = sorted(vmesses, key=lambda i:i["ps"], reverse=True)
             elif sel == "w":
                 output_item(vmesses)
-                sys.exit(0)
+                return
             elif sel == "q":
-                sys.exit(0)
+                return
             elif sel.startswith("d") and sel[1:].isdigit():
-                idx = int(sel[1:])-1
+                idx = int(sel[1:])
                 del vmesses[idx]
             else:
-                print("Unreconized command.")
+                print("Error: Unreconized command.")
+        except IndexError:
+            print("Error input: Out of range")
+        except EOFError:
+            return
 
-        else:
-            raise Exception("Current session cant open a tty to select. Specify the index to --select argument.")
+
 
 
 def edit_item(vmesses, idx):
     item = vmesses[idx]["info"]
-    _, tfile = tempfile.mkstemp()
-    with open(tfile, 'w') as f:
+
+    tfile = tempfile.NamedTemporaryFile(delete=False)
+    tfile.close()
+    with open(tfile.name, 'w') as f:
         json.dump(item, f, indent=4)
 
-    os.system("vim {}".format(tfile))
+    os.system("vim {}".format(tfile.name))
 
-    with open(tfile, 'r') as f:
-        item = json.load(f)
-        vmesses[idx]["info"] = item
-        vmesses[idx]["vm"] = item2link(item)
-        vmesses[idx]["ps"] = "[{ps}] {add}:{port}/{net}".format(**item)
-    os.remove(tfile)
+    with open(tfile.name, 'r') as f:
+        try:
+            item = json.load(f)
+        except json.decoder.JSONDecodeError:
+            print("Error: json syntax error")
+        else:
+            vmesses[idx]["info"] = item
+            vmesses[idx]["link"] = item2link(item)
+            vmesses[idx]["menu"] = menu_item(item)
+
+    os.remove(tfile.name)
 
 def output_item(vmesses):
-    links = map(lambda x:x["vm"], vmesses)
+    links = map(lambda x:x["link"], vmesses)
     with open(option.edit[0].name, "w") as f:
         f.write("\n".join(links))
 
 if __name__ == "__main__":
-    # import ptvsd
-    # ptvsd.enable_attach(address=('localhost', 5678), redirect_output=True)
-    # ptvsd.wait_for_attach()
 
     parser = argparse.ArgumentParser(description="vmess subscribe file editor.")
     parser.add_argument('edit',
@@ -211,10 +173,11 @@ if __name__ == "__main__":
 
     option = parser.parse_args()
     indata = option.edit[0].read()
+    option.edit[0].close()
 
     try:
         lines = base64.b64decode(indata).decode().splitlines()
     except (binascii.Error, UnicodeDecodeError):
         lines = indata.splitlines()
     finally:
-        list_multiple(lines)
+        menu_loop(lines)
