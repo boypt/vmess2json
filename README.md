@@ -78,6 +78,8 @@ vmess2json.py --subscribe https://vmess.subscribe.domain/sub.txt -o /etc/v2ray/c
 
 `vmesseditor.py` parses subscribtion files and allow user to edit one of the configs.
 
+Editor accepets both base64 encoded or plain text subscribtion, but outputs only plain texts.
+
 ## Usage
 ```text
 ./vmesseditor.py subs.txt

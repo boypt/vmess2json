@@ -184,10 +184,13 @@ if __name__ == "__main__":
                         help="a subscribe text file, base64 encoded or not")
 
     option = parser.parse_args()
-    indata = option.edit[0].read()
+    indata = option.edit[0].read().strip()
     option.edit[0].close()
 
     try:
+        blen = len(indata)
+        if blen % 4 > 0:
+            indata += "=" * (4 - blen % 4)
         lines = base64.b64decode(indata).decode().splitlines()
     except (binascii.Error, UnicodeDecodeError):
         lines = indata.splitlines()
