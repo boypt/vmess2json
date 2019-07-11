@@ -95,7 +95,7 @@ Save Write(w), Quit without saving(q)
 Choose >>>
 ```
 
-Here you can enter the index digit to edit one of the config, the script calls `vim` to open a template file with config content.
+Now you can enter the index digit to edit one of the config, the script calls `vim` to open a template file with config content.
 
 ```json
 {
