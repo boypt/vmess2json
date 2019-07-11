@@ -105,8 +105,8 @@ def menu_loop(lines):
             print("[{:^3}] - {}".format(i, item["menu"]))
 
         print("""==============================================================
-Enter index digit to edit:
-Other commands: Add(a), Delete XX(dXX), Sort(o), Sort by desc(d),
+Enter index digit XX to edit,
+Other commands: Add(a), Delete XX(dXX), Sort by ps(s), Sort by ps desc(d),
 Save Write(w), Quit without saving(q)
 """)
 
@@ -118,7 +118,6 @@ Save Write(w), Quit without saving(q)
                     _edited = edit_item(vmesses[idx]["info"])
                 except json.decoder.JSONDecodeError:
                     print("Error: json syntax error")
-                    continue
                 else:
                     vmesses[idx] = {
                         "menu": menu_item(_edited),
@@ -135,11 +134,10 @@ Save Write(w), Quit without saving(q)
                         "link": _v,
                         "info": _vinfo
                     })
-                continue
-            elif sel == "o":
-                vmesses = sorted(vmesses, key=lambda i:i["ps"])
+            elif sel == "s":
+                vmesses = sorted(vmesses, key=lambda i:i["info"]["ps"])
             elif sel == "d":
-                vmesses = sorted(vmesses, key=lambda i:i["ps"], reverse=True)
+                vmesses = sorted(vmesses, key=lambda i:i["info"]["ps"], reverse=True)
             elif sel == "w":
                 output_item(vmesses)
                 return
