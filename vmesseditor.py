@@ -105,15 +105,25 @@ def menu_loop(lines):
 
         print("""==============================================================
 Enter index digit to edit:
-Other commands: Sort(o), Sort by desc(d), Write(w), Delete XX(dXX)
-Quit without saving(q)
+Other commands: Add(a), Delete XX(dXX), Sort(o), Sort by desc(d),
+Save Write(w), Quit without saving(q)
 """)
 
         try:
-            sel = input("Choose >>> ")
+            sel = input("Choose >>>")
             if sel.isdigit():
                 idx = int(sel)
                 edit_item(vmesses, idx)
+            elif sel == "a":
+                _v = input("input >>>")
+                _vinfo = parseLink(_v)
+                if _vinfo is not None:
+                    vmesses.append({ 
+                        "menu": menu_item(_vinfo),
+                        "link": _v,
+                        "info": _vinfo
+                    })
+                continue
             elif sel == "o":
                 vmesses = sorted(vmesses, key=lambda i:i["ps"])
             elif sel == "d":
