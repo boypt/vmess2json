@@ -42,6 +42,7 @@ def parseSs(sslink):
         
         if info.rfind("#") > 0:
             info, ps = info.split("#", 2)
+            ps = urllib.parse.unquote(ps)
         
         if info.find("@") < 0:
             # old style link
@@ -83,11 +84,11 @@ def parseVmess(vmesslink):
         raise Exception("vmess link invalid")
 
 
-def menu_item(vinfo):
-    return "[{ps}] {add}:{port}/{net}".format(**vinfo)
 
 def menu_loop(lines):
     vmesses = []
+    menu_item = lambda x: "[{ps}] {add}:{port}/{net}".format(**x)
+
     for _v in lines:
         _vinfo = parseLink(_v)
         if _vinfo is not None:
@@ -113,7 +114,18 @@ Save Write(w), Quit without saving(q)
             sel = input("Choose >>>")
             if sel.isdigit():
                 idx = int(sel)
-                edit_item(vmesses, idx)
+                try:
+                    _edited = edit_item(vmesses[idx]["info"])
+                except json.decoder.JSONDecodeError:
+                    print("Error: json syntax error")
+                    continue
+                else:
+                    vmesses[idx] = {
+                        "menu": menu_item(_edited),
+                        "link": item2link(_edited),
+                        "info": _edited
+                    }
+
             elif sel == "a":
                 _v = input("input >>>")
                 _vinfo = parseLink(_v)
@@ -144,11 +156,7 @@ Save Write(w), Quit without saving(q)
             return
 
 
-
-
-def edit_item(vmesses, idx):
-    item = vmesses[idx]["info"]
-
+def edit_item(item):
     tfile = tempfile.NamedTemporaryFile(delete=False)
     tfile.close()
     with open(tfile.name, 'w') as f:
@@ -158,15 +166,11 @@ def edit_item(vmesses, idx):
 
     with open(tfile.name, 'r') as f:
         try:
-            item = json.load(f)
-        except json.decoder.JSONDecodeError:
-            print("Error: json syntax error")
-        else:
-            vmesses[idx]["info"] = item
-            vmesses[idx]["link"] = item2link(item)
-            vmesses[idx]["menu"] = menu_item(item)
-
-    os.remove(tfile.name)
+            _in = json.load(f)
+        finally:
+            os.remove(tfile.name)
+        
+        return _in
 
 def output_item(vmesses):
     links = map(lambda x:x["link"], vmesses)
