@@ -81,12 +81,11 @@ vmess2json.py --subscribe https://vmess.subscribe.domain/sub.txt -o /etc/v2ray/c
 ## Usage
 ```text
 ./vmesseditor.py subs.txt
-$ ./vmesseditor.py /tmp/v2 
 ==============================================================
-[ 0 ] - [ca/cf] node.domain.ml:443/ws
-[ 1 ] - [ca/kcp4] node.domain.ml:12738/kcp
-[ 2 ] - [ca/kcp6] node6.domain.ml:12738/kcp
-[ 3 ] - [lit/kcp4] node.domain.ml:1933/kcp
+[ 0 ] - [node/cf] node.domain.ml:443/ws
+[ 1 ] - [node/kcp4] node.domain.ml:12738/kcp
+[ 2 ] - [node/kcp6] node6.domain.ml:12738/kcp
+[ 3 ] - [node/kcp4] node.domain.ml:1933/kcp
 ==============================================================
 Enter index digit XX to edit,
 Other commands: Add(a), Delete XX(dXX), Sort by ps(s), Sort by ps desc(d),
