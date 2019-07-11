@@ -73,3 +73,46 @@ cat vmess_list.txt | vmess2json.py --parse_all
 # choose from an online subscribe source
 vmess2json.py --subscribe https://vmess.subscribe.domain/sub.txt -o /etc/v2ray/config.json
 ```
+
+# VmessEditor
+
+`vmesseditor.py` parses subscribtion files and allow user to edit one of the configs.
+
+## Usage
+```text
+./vmesseditor.py subs.txt
+$ ./vmesseditor.py /tmp/v2 
+==============================================================
+[ 0 ] - [ca/cf] node.domain.ml:443/ws
+[ 1 ] - [ca/kcp4] node.domain.ml:12738/kcp
+[ 2 ] - [ca/kcp6] node6.domain.ml:12738/kcp
+[ 3 ] - [lit/kcp4] node.domain.ml:1933/kcp
+==============================================================
+Enter index digit XX to edit,
+Other commands: Add(a), Delete XX(dXX), Sort by ps(s), Sort by ps desc(d),
+Save Write(w), Quit without saving(q)
+
+Choose >>>
+```
+
+Here you can enter the index digit to edit one of the config, the script calls `vim` to open a template file with config content.
+
+```json
+{
+    "v": "2",
+    "ps": "node/cf",
+    "add": "node.domain.net",
+    "port": "443",
+    "id": "2aaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee",
+    "aid": "8",
+    "net": "ws",
+    "type": "none",
+    "host": "",
+    "path": "/abc123",
+    "tls": "tls"
+}
+```
+
+On save and exit `:wq`, scripts parses the context and return to the main menu.
+
+Use command `w` to save and exit, now you have an updated subscribtion file.
