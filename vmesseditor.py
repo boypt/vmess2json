@@ -175,24 +175,43 @@ def output_item(vmesses):
     with open(option.edit[0].name, "w") as f:
         f.write("\n".join(links))
 
+def edit_single_link(vmess):
+    _vinfo = parseLink(vmess)
+    if _vinfo is None:
+        return
+
+    try:
+        _vedited = edit_item(_vinfo)
+    except json.decoder.JSONDecodeError as e:
+        print("JSON format error:", e)
+        return
+
+    _link = item2link(_vedited)
+    print("Edited Link:")
+    print(_link)
+
 if __name__ == "__main__":
 
     parser = argparse.ArgumentParser(description="vmess subscribe file editor.")
     parser.add_argument('edit',
                         nargs=1,
-                        type=argparse.FileType('r'),
+                        type=str,
                         help="a subscribe text file, base64 encoded or not")
 
     option = parser.parse_args()
-    indata = option.edit[0].read().strip()
-    option.edit[0].close()
+    arg = option.edit[0]
+    if os.path.exists(arg):
+        with open(arg) as f:
+            indata = f.read().strip()
+        try:
+            blen = len(indata)
+            if blen % 4 > 0:
+                indata += "=" * (4 - blen % 4)
+            lines = base64.b64decode(indata).decode().splitlines()
+        except (binascii.Error, UnicodeDecodeError):
+            lines = indata.splitlines()
+        finally:
+            menu_loop(lines)
 
-    try:
-        blen = len(indata)
-        if blen % 4 > 0:
-            indata += "=" * (4 - blen % 4)
-        lines = base64.b64decode(indata).decode().splitlines()
-    except (binascii.Error, UnicodeDecodeError):
-        lines = indata.splitlines()
-    finally:
-        menu_loop(lines)
+    else:
+        edit_single_link(arg)

@@ -81,6 +81,8 @@ vmess2json.py --subscribe https://vmess.subscribe.domain/sub.txt -o /etc/v2ray/c
 Editor accepets both base64 encoded or plain text subscribtion, but outputs only plain texts.
 
 ## Usage
+
+Edit a subscription file `subs.txt`
 ```text
 ./vmesseditor.py subs.txt
 ==============================================================
@@ -117,3 +119,10 @@ Now you can enter the index digit to edit one of the config, the script calls `v
 On save and exit `:wq`, scripts parses the context and return to the main menu.
 
 Use command `w` to save and exit, now you have an updated subscribtion file.
+
+OR:
+
+Edit a single `vmess://` link
+```
+./vmesseditor.py vmess://abcdEFGHIJK....
+```
