@@ -196,7 +196,7 @@ if __name__ == "__main__":
     parser.add_argument('edit',
                         nargs=1,
                         type=str,
-                        help="a subscribe text file, base64 encoded or not")
+                        help="a subscribe text file, base64 encoded or not, or a single vmess:// ss:// link")
 
     option = parser.parse_args()
     arg = option.edit[0]
