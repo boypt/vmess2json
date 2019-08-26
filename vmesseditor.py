@@ -172,7 +172,7 @@ def edit_item(item):
 
 def output_item(vmesses):
     links = map(lambda x:x["link"], vmesses)
-    with open(option.edit[0].name, "w") as f:
+    with open(option.edit[0], "w") as f:
         f.write("\n".join(links))
 
 def edit_single_link(vmess):
