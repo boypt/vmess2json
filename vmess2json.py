@@ -54,7 +54,10 @@ TPL["CLIENT"] = """
     },
     {
       "protocol": "freedom",
-      "tag": "direct"
+      "tag": "direct",
+      "settings": {
+        "domainStrategy": "UseIP"
+      }
     }
   ],
   "dns": {
@@ -410,6 +413,7 @@ def fill_basic(_c, _v):
 
     if _v["tls"] == "tls":
         _outbound["streamSettings"]["security"] = "tls"
+        _outbound["streamSettings"]["tlsSettings"] = {"allowInsecure": True}
 
     return _c
 
@@ -664,9 +668,9 @@ def detect_stdin():
     if sys.stdin.isatty():
         return None
     stdindata = sys.stdin.read()
+    option.subscribe = "-"
     try:
         lines = base64.b64decode(stdindata).decode().splitlines()
-        option.subscribe = "-"
         return lines
     except (binascii.Error, UnicodeDecodeError):
         return stdindata.splitlines()
