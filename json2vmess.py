@@ -61,6 +61,14 @@ def inbound2vmess(inbound):
         _net = sset["network"]
     else:
         _net = "tcp"
+
+    if option.net != "":
+        if option.net.startswith("!"):
+            if _net == option.net[1:]:
+                raise UnknowProtocolException()
+        else:
+            if _net != option.net:
+                raise UnknowProtocolException()
     
     if _net == "tcp":
         if "tcpSettings" in sset and \
@@ -124,6 +132,12 @@ if __name__ == "__main__":
                         action="store",
                         default="",
                         help="server address. if not specified, program will detect the IP")
+    parser.add_argument('--net',
+                        action="store",
+                        default="",
+                        help="filter to certant type of protocol, "
+                        "useful for different protocol using different domains. "
+                        "If NET starts with !, protocols other than this type will output.")
     parser.add_argument('json',
                         type=argparse.FileType('r'),
                         default=sys.stdin,

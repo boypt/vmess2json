@@ -147,4 +147,7 @@ optional arguments:
   -h, --help            show this help message and exit
   -a ADDR, --addr ADDR  server address. if not specified, program will detect
                         the IP
+  --net NET             filter to certant type of protocol, useful for
+                        different protocol using different domains. If starts
+                        with !, protocols other than this type will output.
 ```
