@@ -126,3 +126,25 @@ Edit a single `vmess://` link
 ```
 ./vmesseditor.py vmess://abcdEFGHIJK....
 ```
+
+
+# json2vmess
+
+`json2vmess.py` works oppositely, parses a server side json and prints `vmess://` links.
+
+## Usage
+
+```
+./json2vmess.py --help
+usage: json2vmess.py [-h] [-a ADDR] json
+
+json2vmess convert server side json into vmess links
+
+positional arguments:
+  json                  parse the server side json
+
+optional arguments:
+  -h, --help            show this help message and exit
+  -a ADDR, --addr ADDR  server address. if not specified, program will detect
+                        the IP
+```
