@@ -145,9 +145,26 @@ positional arguments:
 
 optional arguments:
   -h, --help            show this help message and exit
-  -a ADDR, --addr ADDR  server address. if not specified, program will detect
-                        the IP
-  --net NET             filter to certant type of protocol, useful for
-                        different protocol using different domains. If starts
-                        with !, protocols other than this type will output.
+  --addr ADDR           server address. If not specified, program will detect
+                        the current IP
+  --filter FILTER       Protocol Filter, useful for inbounds with different
+                        protocols. FILTER starts with ! means negative
+                        selection.
+  -a AMEND, --amend AMEND
+                        Amend to the output values, can be use multiple times.
+                        eg: -a port:80 -a ps:amended
+  --debug               debug mode, show vmess obj
+```
+
+## Example
+```
+#just list the links (on server)
+./json2vmess.py /etc/v2ray/config.json 
+
+# if using h2/ws protocols, auto detected IP is not working, manually specify it
+./json2vmess.py --addr my.v2ray.domain.net /etc/v2ray/config.json 
+
+# json file has multiple inbounds with different protocols
+# output those ws and replace to port 443 for the caddy/nginx is proxying the websocket at 443
+./json2vmess.py --addr my.v2ray.domain.net --filter ws --amend port:443 --debug /mnt/d/v2ray.json 
 ```

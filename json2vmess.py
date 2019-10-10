@@ -1,16 +1,9 @@
 #!/usr/bin/env python3
-import os
 import sys
 import json
 import base64
-import pprint
 import argparse
-import random
-import hashlib
-import binascii
-import traceback
 import urllib.request
-import urllib.parse
 
 class UnknowProtocolException(Exception):
     pass
@@ -39,7 +32,9 @@ def parse_inbounds(jsonobj):
                     pass
 
     for v in vmesses:
-        link = "vmess://" + base64.b64encode(json.dumps(v).encode('utf-8')).decode()
+        link = "vmess://" + base64.b64encode(json.dumps(v, sort_keys=True).encode('utf-8')).decode()
+        if option.debug:
+            print(v)
         print(link)
         print()
 
@@ -62,12 +57,12 @@ def inbound2vmess(inbound):
     else:
         _net = "tcp"
 
-    if option.net != "":
-        if option.net.startswith("!"):
-            if _net == option.net[1:]:
+    if option.filter != "":
+        if option.filter.startswith("!"):
+            if _net == option.filter[1:]:
                 raise UnknowProtocolException()
         else:
-            if _net != option.net:
+            if _net != option.filter:
                 raise UnknowProtocolException()
     
     if _net == "tcp":
@@ -120,6 +115,12 @@ def inbound2vmess(inbound):
             vobj = dict(
                 id=c["id"], aid=str(c["alterId"]),
                 v="2", tls=_tls, add=_add, port=_port, type=_type, net=_net, path=_path, host=_host, ps="{}/{}".format(_add, _net))
+
+            if option.amend is not None:
+                for am in option.amend:
+                    k, v = am.split(":", maxsplit=2)
+                    vobj[k] = v
+            
             vmessobjs.append(vobj)
             
     return vmessobjs
@@ -128,16 +129,22 @@ def inbound2vmess(inbound):
 if __name__ == "__main__":
 
     parser = argparse.ArgumentParser(description="json2vmess convert server side json into vmess links")
-    parser.add_argument('-a', '--addr',
+    parser.add_argument('--addr',
                         action="store",
                         default="",
-                        help="server address. if not specified, program will detect the IP")
-    parser.add_argument('--net',
+                        help="server address. If not specified, program will detect the current IP")
+    parser.add_argument('--filter',
                         action="store",
                         default="",
-                        help="filter to certant type of protocol, "
-                        "useful for different protocol using different domains. "
-                        "If NET starts with !, protocols other than this type will output.")
+                        help="Protocol Filter, useful for inbounds with different protocols. "
+                        "FILTER starts with ! means negative selection.")
+    parser.add_argument('-a', '--amend',
+                        action="append",
+                        help="Amend to the output values, can be use multiple times. eg: -a port:80 -a ps:amended")
+    parser.add_argument('--debug',
+                        action="store_true",
+                        default=False,
+                        help="debug mode, show vmess obj")
     parser.add_argument('json',
                         type=argparse.FileType('r'),
                         default=sys.stdin,
