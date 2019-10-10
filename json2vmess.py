@@ -57,13 +57,14 @@ def inbound2vmess(inbound):
     else:
         _net = "tcp"
 
-    if option.filter != "":
-        if option.filter.startswith("!"):
-            if _net == option.filter[1:]:
-                raise UnknowProtocolException()
-        else:
-            if _net != option.filter:
-                raise UnknowProtocolException()
+    if option.filter is not None:
+        for filt in option.filter:
+            if filt.startswith("!"):
+                if _net == filt[1:]:
+                    raise UnknowProtocolException()
+            else:
+                if _net != filt:
+                    raise UnknowProtocolException()
     
     if _net == "tcp":
         if "tcpSettings" in sset and \
@@ -133,11 +134,10 @@ if __name__ == "__main__":
                         action="store",
                         default="",
                         help="server address. If not specified, program will detect the current IP")
-    parser.add_argument('--filter',
-                        action="store",
-                        default="",
+    parser.add_argument('-f', '--filter',
+                        action="append",
                         help="Protocol Filter, useful for inbounds with different protocols. "
-                        "FILTER starts with ! means negative selection.")
+                        "FILTER starts with ! means negative selection. Multiple filter is accepted.")
     parser.add_argument('-a', '--amend',
                         action="append",
                         help="Amend to the output values, can be use multiple times. eg: -a port:80 -a ps:amended")

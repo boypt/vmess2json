@@ -149,7 +149,7 @@ optional arguments:
                         the current IP
   --filter FILTER       Protocol Filter, useful for inbounds with different
                         protocols. FILTER starts with ! means negative
-                        selection.
+                        selection. Multiple filter is accepted.
   -a AMEND, --amend AMEND
                         Amend to the output values, can be use multiple times.
                         eg: -a port:80 -a ps:amended
@@ -165,6 +165,12 @@ optional arguments:
 ./json2vmess.py --addr my.v2ray.domain.net /etc/v2ray/config.json 
 
 # json file has multiple inbounds with different protocols
-# output those ws and replace to port 443 for the caddy/nginx is proxying the websocket at 443
-./json2vmess.py --addr my.v2ray.domain.net --filter ws --amend port:443 --debug /mnt/d/v2ray.json 
+# output those ws and h2 and replace to port 443 for the caddy/nginx is proxying the websocket at 443
+./json2vmess.py --addr my.v2ray.domain.net --filter ws --amend port:443 --debug  /etc/v2ray/config.json 
+
+# use raw IP address for kcp and tcp connections 
+./json2vmess.py --addr 2001:1234:5678::9999 --filter kcp -f tcp --debug  /etc/v2ray/config.json
+
+# or just any protocols other than websocket
+./json2vmess.py --addr 2001:1234:5678::9999 --filter \!ws --debug  /etc/v2ray/config.json
 ```
