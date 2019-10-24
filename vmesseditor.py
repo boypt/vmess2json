@@ -160,7 +160,8 @@ def edit_item(item):
     with open(tfile.name, 'w') as f:
         json.dump(item, f, indent=4)
 
-    os.system("vim {}".format(tfile.name))
+    editor = os.environ.get("EDITOR", "vi")
+    os.system("{} {}".format(editor, tfile.name))
 
     with open(tfile.name, 'r') as f:
         try:
