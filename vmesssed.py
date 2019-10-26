@@ -120,7 +120,7 @@ def sed_loop(lines):
 def output_item(vmesses):
     links = map(lambda x:x["link"], vmesses)
     with open(option.edit[0], "w") as f:
-        f.write("\n".join(links))
+        f.write("\n".join(links)+"\n")
 
 
 if __name__ == "__main__":
