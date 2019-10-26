@@ -109,7 +109,7 @@ Commands need index as the arg (example: `edit 3')
 del, edit, dup
 
 Commands needs no args: 
-add, sort, sortdesc, save, quit
+add, sort, sortdesc, save, quit, help
 """)
 
         try:
@@ -122,7 +122,9 @@ add, sort, sortdesc, save, quit
             elif len(command) == 1:
                 act = command[0]
 
-            if act == "edit":
+            if act == "help":
+                print_help()
+            elif act == "edit":
                 try:
                     _edited = edit_item(vmesses[idx]["info"])
                 except json.decoder.JSONDecodeError:
@@ -169,6 +171,20 @@ add, sort, sortdesc, save, quit
         except EOFError:
             return
 
+def print_help():
+    print("""
+* del  -  Delete an item, example: del 12
+* edit -  Edit an item in an external editor (defaultly vi, via $EDITOR env variable) will be run for the json format.
+* dup  -  Duplicate an item, with the 'ps' appended a suffix .dup
+* add  -  Input a new vmess item in to the subscribtion.
+* sort -  Sort the items by the 'ps'.
+* sortdesc -  Sort the items by the 'ps' in descedent order. (reversed order)
+* save -  Save and quit.
+* quit -  Quit without saveing (same as pressing Ctrl+C). 
+
+Press Enter to return to the items menu.
+""")
+    input()
 
 def edit_item(item):
     tfile = tempfile.NamedTemporaryFile(delete=False)
