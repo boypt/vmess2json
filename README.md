@@ -2,7 +2,7 @@
 
 VmessUtils consist of a bundle of python scripts that works with vmess:// format and the subscription.
 
-Formerly the named vmess2json, is now one of the scripts in the project.
+Formerly named vmess2json, is one of the scripts in the project.
 
 * [vmess2json](https://github.com/boypt/vmess2json/wiki/vmess2json) parses `vmess://` to client side json config.
 * [json2vmess](https://github.com/boypt/vmess2json/wiki/json2vmess) parses server side json to `vmess://`
