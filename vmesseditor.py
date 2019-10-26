@@ -105,15 +105,24 @@ def menu_loop(lines):
             print("[{:^3}] - {}".format(i, item["menu"]))
 
         print("""==============================================================
-Enter index digit XX to edit,
-Other commands: Add(a), Delete XX(dXX), Sort by ps(s), Sort by ps desc(d),
-Save Write(w), Quit without saving(q)
+Commands need index as the arg (example: `edit 3')
+del, edit, dup
+
+Commands needs no args: 
+add, sort, sortdesc, save, quit
 """)
 
         try:
-            sel = input("Choose >>>")
-            if sel.isdigit():
-                idx = int(sel)
+            command = input("Choose >>>").split(" ", maxsplit=1)
+
+            if len(command) == 2:
+                act, _idx = command
+                act = act.lower()
+                idx = int(_idx)
+            elif len(command) == 1:
+                act = command[0]
+
+            if act == "edit":
                 try:
                     _edited = edit_item(vmesses[idx]["info"])
                 except json.decoder.JSONDecodeError:
@@ -125,7 +134,7 @@ Save Write(w), Quit without saving(q)
                         "info": _edited
                     }
 
-            elif sel == "a":
+            elif act == "add":
                 _v = input("input >>>")
                 _vinfo = parseLink(_v)
                 if _vinfo is not None:
@@ -134,18 +143,25 @@ Save Write(w), Quit without saving(q)
                         "link": _v,
                         "info": _vinfo
                     })
-            elif sel == "s":
+            elif act == "sort":
                 vmesses = sorted(vmesses, key=lambda i:i["info"]["ps"])
-            elif sel == "d":
+            elif act == "sortdesc":
                 vmesses = sorted(vmesses, key=lambda i:i["info"]["ps"], reverse=True)
-            elif sel == "w":
+            elif act == "save":
                 output_item(vmesses)
                 return
-            elif sel == "q":
+            elif act == "quit":
                 return
-            elif sel.startswith("d") and sel[1:].isdigit():
-                idx = int(sel[1:])
+            elif act == "del":
                 del vmesses[idx]
+            elif act == "dup":
+                cp = vmesses[idx]["info"].copy()
+                cp["ps"] += ".dup"
+                vmesses.append({
+                    "menu": menu_item(cp),
+                    "link": item2link(cp),
+                    "info": cp
+                })
             else:
                 print("Error: Unreconized command.")
         except IndexError:
