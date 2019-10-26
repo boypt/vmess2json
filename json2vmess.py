@@ -34,7 +34,8 @@ def parse_inbounds(jsonobj):
     for v in vmesses:
         link = "vmess://" + base64.b64encode(json.dumps(v, sort_keys=True).encode('utf-8')).decode()
         if option.debug:
-            print(v)
+            msg = lambda x: "{ps} / {net} / {add}:{port} / net:{net}/aid:{aid}/host:{host}/path:{path}/tls:{tls}/type:{type}".format(**x)
+            print(msg(v))
         print(link)
         print()
 
