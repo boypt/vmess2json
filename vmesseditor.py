@@ -168,6 +168,8 @@ add, sort, sortdesc, save, quit, help
                 print("Error: Unreconized command.")
         except IndexError:
             print("Error input: Out of range")
+        except KeyboardInterrupt:
+            return
         except EOFError:
             return
 
@@ -248,3 +250,5 @@ if __name__ == "__main__":
 
     else:
         edit_single_link(arg)
+
+    print("  Bye :)")
