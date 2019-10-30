@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import sys
+import re
 import json
 import base64
 import argparse
@@ -118,20 +119,34 @@ def inbound2vmess(inbound):
                 id=c["id"], aid=str(c["alterId"]),
                 v="2", tls=_tls, add=_add, port=_port, type=_type, net=_net, path=_path, host=_host, ps="{}/{}".format(_add, _net))
 
-            if option.amend is not None:
-                for am in option.amend:
-                    k, v = am.split(":", maxsplit=2)
-                    vobj[k] = v
-            
+            # plain replace
+            for key, plain in plain_amends.items():
+                val = vobj.get(key, None)
+                if val is None:
+                    continue
+                vobj[key] = plain
+
+            # sed-like cmd replace
+            for key, opt in sed_amends.items():
+                val = vobj.get(key, None)
+                if val is None:
+                    continue
+                vobj[key] = re.sub(opt[0], opt[1], val, opt[2])
+                
             vmessobjs.append(vobj)
-            
     return vmessobjs
 
+def parse_amendsed(val):
+    if not val.startswith("s"):
+        raise ValueError("not sed")
+    spliter = val[1:2]
+    _, pattern, repl, tags = sedcmd.split(spliter, maxsplit=4)
+    return pattern, repl, tags
 
 if __name__ == "__main__":
 
     parser = argparse.ArgumentParser(description="json2vmess convert server side json into vmess links")
-    parser.add_argument('--addr',
+    parser.add_argument('-a', '--addr',
                         action="store",
                         default="",
                         help="server address. If not specified, program will detect the current IP")
@@ -139,7 +154,7 @@ if __name__ == "__main__":
                         action="append",
                         help="Protocol Filter, useful for inbounds with different protocols. "
                         "FILTER starts with ! means negative selection. Multiple filter is accepted.")
-    parser.add_argument('-a', '--amend',
+    parser.add_argument('-m', '--amend',
                         action="append",
                         help="Amend to the output values, can be use multiple times. eg: -a port:80 -a ps:amended")
     parser.add_argument('--debug',
@@ -156,6 +171,22 @@ if __name__ == "__main__":
     host_ip = option.addr
     if host_ip == "":
         host_ip = get_host_ip()
+
+    sed_amends = {}
+    plain_amends = {}
+    if option.amend:
+        for s in option.amend:
+            key, sedcmd = s.split(":", maxsplit=1)
+            try:
+                pattern, repl, tags = parse_amendsed(sedcmd)
+            except ValueError:
+                plain_amends[key] = sedcmd
+                continue
+
+            reflag = 0
+            if "i" in tags:
+                reflag |= re.IGNORECASE
+            sed_amends[key] = [pattern, repl, reflag]
 
     jsonobj = json.load(option.json)
     parse_inbounds(jsonobj)

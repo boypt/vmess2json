@@ -90,25 +90,19 @@ def sed_loop(lines):
                 "info": _vinfo
             })
 
-
-    seds = {}
-    if option.sed:
-        for s in option.sed:
-            key, sedcmd = s.split(":", maxsplit=1)
-            spliter = sedcmd[1:2]
-            _, pattern, repl, tags = sedcmd.split(spliter, maxsplit=4)
-
-            reflag = 0
-            if "i" in tags:
-                reflag |= re.IGNORECASE
-            seds[key] = [pattern, repl, reflag]
-
     for vm in vmesses:
-        for key, opt in seds.items():
+        for key, plain in plain_amends.items():
+            val = vm["info"].get(key, None)
+            if val is None:
+                continue
+            vm["info"][key] = plain
+
+        for key, opt in sed_amends.items():
             val = vm["info"].get(key, None)
             if val is None:
                 continue
             vm["info"][key] = re.sub(opt[0], opt[1], val, opt[2])
+
 
         vm["link"] = item2link(vm["info"])
         msg = lambda x: "{ps} / {net} / {add}:{port} / net:{net}/aid:{aid}/host:{host}/path:{path}/tls:{tls}/type:{type}".format(**x)
@@ -122,11 +116,17 @@ def output_item(vmesses):
     with open(option.edit[0], "w") as f:
         f.write("\n".join(links)+"\n")
 
+def parse_amendsed(val):
+    if not val.startswith("s"):
+        raise ValueError("not sed")
+    spliter = val[1:2]
+    _, pattern, repl, tags = sedcmd.split(spliter, maxsplit=4)
+    return pattern, repl, tags
 
 if __name__ == "__main__":
 
     parser = argparse.ArgumentParser(description="vmess subscribe file editor.")
-    parser.add_argument('-s', '--sed', action='append', help="the sed command, can be multiple, only the replace form is supported,"
+    parser.add_argument('-m', '--amend', action='append', help="the sed command, can be multiple, only the replace form is supported,"
         " example: -s 's/find/repl/i' -s 's#remove##' ")
     parser.add_argument('-i', '--inplace', action='store_false', help="edit the filein place, like -i to sed command")
     parser.add_argument('edit',
@@ -135,6 +135,23 @@ if __name__ == "__main__":
                         help="a subscribe text file, base64 encoded or not, or a single vmess:// ss:// link")
 
     option = parser.parse_args()
+
+    sed_amends = {}
+    plain_amends = {}
+    if option.amend:
+        for s in option.amend:
+            key, sedcmd = s.split(":", maxsplit=1)
+            try:
+                pattern, repl, tags = parse_amendsed(sedcmd)
+            except ValueError:
+                plain_amends[key] = sedcmd
+                continue
+
+            reflag = 0
+            if "i" in tags:
+                reflag |= re.IGNORECASE
+            sed_amends[key] = [pattern, repl, reflag]
+
     arg = option.edit[0]
     if os.path.exists(arg):
         with open(arg) as f:
