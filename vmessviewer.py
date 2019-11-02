@@ -76,12 +76,16 @@ def view_loop(lines):
     for idx, _v in enumerate(lines):
         _vinfo = parseLink(_v)
         ml = msg(_vinfo)
-        print("[{}] {}".format(idx, ml))
+        print("#[{}] {}".format(idx, ml))
+        if not option.hide:
+            print(_v+"\n")
+
 
 
 if __name__ == "__main__":
 
     parser = argparse.ArgumentParser(description="vmess subscribe file editor.")
+    parser.add_argument('--hide', action='store_true', help="hide origin vmess, just show info")
     parser.add_argument('edit',
                         nargs=1,
                         type=str,
