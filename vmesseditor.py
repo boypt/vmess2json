@@ -118,13 +118,21 @@ add, sort, sortdesc, save, quit, help
             if len(command) == 2:
                 act, _idx = command
                 act = act.lower()
-                idx = int(_idx)
+                try:
+                    idx = int(_idx)
+                except ValueError:
+                    idx = -1
+                if idx >= len(vmesses):
+                    raise ValueError("Index Error", idx)
+
             elif len(command) == 1:
                 act = command[0]
 
             if act == "help":
                 print_help()
             elif act == "edit":
+                if idx < 0:
+                    raise ValueError("Index Error")
                 try:
                     _edited = edit_item(vmesses[idx]["info"])
                 except json.decoder.JSONDecodeError:
@@ -137,7 +145,10 @@ add, sort, sortdesc, save, quit, help
                     }
 
             elif act == "add":
-                _v = input("input >>>")
+                if _idx == "":
+                    _v = input("input >>>")
+                else:
+                    _v = _idx
                 _vinfo = parseLink(_v)
                 if _vinfo is not None:
                     vmesses.append({ 
@@ -155,8 +166,12 @@ add, sort, sortdesc, save, quit, help
             elif act == "quit":
                 return
             elif act == "del":
+                if idx < 0:
+                    raise ValueError("Index Error")
                 del vmesses[idx]
             elif act == "dup":
+                if idx < 0:
+                    raise ValueError("Index Error")
                 cp = vmesses[idx]["info"].copy()
                 cp["ps"] += ".dup"
                 vmesses.append({
@@ -166,6 +181,8 @@ add, sort, sortdesc, save, quit, help
                 })
             else:
                 print("Error: Unreconized command.")
+        except ValueError as e:
+            print(e)
         except IndexError:
             print("Error input: Out of range")
         except KeyboardInterrupt:
