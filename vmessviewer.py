@@ -1,13 +1,16 @@
 #!/usr/bin/env python3
 import os
+import sys
 import re
 import json
 import base64
 import argparse
 import binascii
+import urllib.parse
 
 vmscheme = "vmess://"
 ssscheme = "ss://"
+
 
 def parseLink(link):
     if link.startswith(ssscheme):
@@ -23,14 +26,14 @@ def parseSs(sslink):
     if sslink.startswith(ssscheme):
         ps = ""
         info = sslink[len(ssscheme):]
-        
+
         if info.rfind("#") > 0:
             info, ps = info.split("#", 2)
             ps = urllib.parse.unquote(ps)
-        
+
         if info.find("@") < 0:
             # old style link
-            #paddings
+            # paddings
             blen = len(info)
             if blen % 4 > 0:
                 info += "=" * (4 - blen % 4)
@@ -54,10 +57,11 @@ def parseSs(sslink):
 
         return dict(net="shadowsocks", add=addr, port=port, method=method, password=password, ps=ps)
 
+
 def parseVmess(vmesslink):
     if vmesslink.startswith(vmscheme):
         bs = vmesslink[len(vmscheme):]
-        #paddings
+        # paddings
         blen = len(bs)
         if blen % 4 > 0:
             bs += "=" * (4 - blen % 4)
@@ -70,38 +74,47 @@ def parseVmess(vmesslink):
 
 def view_loop(lines):
 
-    vmesses = []
-    msg = lambda x: "{ps} / {net} / {add}:{port} / net:{net}/aid:{aid}/host:{host}/path:{path}/tls:{tls}/type:{type}".format(**x)
+    def msg(
+        x): return "{ps} / {net} / {add}:{port} / net:{net}/aid:{aid}/host:{host}/path:{path}/tls:{tls}/type:{type}".format(**x)
 
-    for idx, _v in enumerate(lines):
+    cnt = 0
+    for _, _v in enumerate(lines):
+        if _v.strip() == "":
+            continue
+
         _vinfo = parseLink(_v)
+
+        if _vinfo is None:
+            continue
+
         ml = msg(_vinfo)
-        print("#[{}] {}".format(idx, ml))
+        cnt += 1
+        print("#[{}] {}".format(cnt, ml))
         if not option.hide:
             print(_v+"\n")
 
 
-
 if __name__ == "__main__":
 
-    parser = argparse.ArgumentParser(description="vmess subscribe file editor.")
-    parser.add_argument('--hide', action='store_true', help="hide origin vmess, just show info")
-    parser.add_argument('edit',
-                        nargs=1,
-                        type=str,
+    parser = argparse.ArgumentParser(
+        description="vmess subscribe file editor.")
+    parser.add_argument('--hide', action='store_true',
+                        help="hide origin vmess, just show info")
+    parser.add_argument('subs',
+                        nargs='?',
+                        type=argparse.FileType('r'),
+                        default=sys.stdin,
                         help="a subscribe text file, base64 encoded or not, or a single vmess:// ss:// link")
 
     option = parser.parse_args()
-    arg = option.edit[0]
-    if os.path.exists(arg):
-        with open(arg) as f:
-            indata = f.read().strip()
-        try:
-            blen = len(indata)
-            if blen % 4 > 0:
-                indata += "=" * (4 - blen % 4)
-            lines = base64.b64decode(indata).decode().splitlines()
-        except (binascii.Error, UnicodeDecodeError):
-            lines = indata.splitlines()
-        finally:
-            view_loop(lines)
+    indata = option.subs.read().strip()
+
+    try:
+        blen = len(indata)
+        if blen % 4 > 0:
+            indata += "=" * (4 - blen % 4)
+        lines = base64.b64decode(indata).decode().splitlines()
+    except (binascii.Error, UnicodeDecodeError):
+        lines = indata.splitlines()
+    finally:
+        view_loop(lines)
