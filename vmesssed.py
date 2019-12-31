@@ -155,13 +155,13 @@ if __name__ == "__main__":
     arg = option.edit[0]
     if os.path.exists(arg):
         with open(arg) as f:
-            indata = f.read().strip()
+            origdata = indata = f.read().strip()
         try:
             blen = len(indata)
             if blen % 4 > 0:
                 indata += "=" * (4 - blen % 4)
             lines = base64.b64decode(indata).decode().splitlines()
         except (binascii.Error, UnicodeDecodeError):
-            lines = indata.splitlines()
+            lines = origdata.splitlines()
         finally:
             sed_loop(lines)

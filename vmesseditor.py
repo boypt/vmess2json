@@ -254,14 +254,15 @@ if __name__ == "__main__":
     arg = option.edit[0]
     if os.path.exists(arg):
         with open(arg) as f:
-            indata = f.read().strip()
+            origdata = indata = f.read().strip()
         try:
-            blen = len(indata)
+            b64data = indata
+            blen = len(b64data)
             if blen % 4 > 0:
-                indata += "=" * (4 - blen % 4)
-            lines = base64.b64decode(indata).decode().splitlines()
+                b64data += "=" * (4 - blen % 4)
+            lines = base64.b64decode(b64data).decode().splitlines()
         except (binascii.Error, UnicodeDecodeError):
-            lines = indata.splitlines()
+            lines = origdata.splitlines()
         finally:
             menu_loop(lines)
 
