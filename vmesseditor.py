@@ -254,9 +254,9 @@ if __name__ == "__main__":
     arg = option.edit[0]
     if os.path.exists(arg):
         with open(arg) as f:
-            origdata = indata = f.read().strip()
+            origdata = f.read().strip()
         try:
-            b64data = indata
+            b64data = (origdata + ".")[:-1]
             blen = len(b64data)
             if blen % 4 > 0:
                 b64data += "=" * (4 - blen % 4)

@@ -111,9 +111,10 @@ if __name__ == "__main__":
 
     try:
         blen = len(indata)
+        b64data = indata
         if blen % 4 > 0:
-            indata += "=" * (4 - blen % 4)
-        lines = base64.b64decode(indata).decode().splitlines()
+            b64data = indata + "=" * (4 - blen % 4)
+        lines = base64.b64decode(b64data).decode().splitlines()
     except (binascii.Error, UnicodeDecodeError):
         lines = indata.splitlines()
     finally:
