@@ -110,11 +110,7 @@ if __name__ == "__main__":
     indata = option.subs.read().strip()
 
     try:
-        blen = len(indata)
-        b64data = indata
-        if blen % 4 > 0:
-            b64data = indata + "=" * (4 - blen % 4)
-        lines = base64.b64decode(b64data).decode().splitlines()
+        lines = base64.b64decode(indata).decode().splitlines()
     except (binascii.Error, UnicodeDecodeError):
         lines = indata.splitlines()
     finally:

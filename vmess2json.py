@@ -628,7 +628,7 @@ def read_subscribe(sub_url):
     req =urllib.request.Request(url=sub_url,headers=headers)
     with urllib.request.urlopen(req) as response:
         _subs = response.read()
-        return base64.b64decode(_subs + b'=' * (-len(_subs) % 4)).decode().splitlines()
+        return base64.b64decode(_subs).decode().splitlines()
 
 def select_multiple(lines):
     vmesses = []

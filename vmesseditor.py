@@ -256,11 +256,7 @@ if __name__ == "__main__":
         with open(arg) as f:
             origdata = f.read().strip()
         try:
-            b64data = (origdata + ".")[:-1]
-            blen = len(b64data)
-            if blen % 4 > 0:
-                b64data += "=" * (4 - blen % 4)
-            lines = base64.b64decode(b64data).decode().splitlines()
+            lines = base64.b64decode(origdata).decode().splitlines()
         except (binascii.Error, UnicodeDecodeError):
             lines = origdata.splitlines()
         finally:
