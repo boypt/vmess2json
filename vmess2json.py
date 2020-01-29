@@ -414,6 +414,9 @@ def fill_basic(_c, _v):
     if _v["tls"] == "tls":
         _outbound["streamSettings"]["security"] = "tls"
         _outbound["streamSettings"]["tlsSettings"] = {"allowInsecure": True}
+        if _v["host"] != "":
+            _outbound["streamSettings"]["tlsSettings"]["serverName"] = _v["host"] 
+
 
     return _c
 
