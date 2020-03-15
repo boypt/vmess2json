@@ -546,7 +546,8 @@ def jsonDump(obj, fobj):
         return
 
     if option.outbound:
-        json.dump(obj["outbounds"][0], fobj, indent=4)
+        onlyoutbound = {"outbounds":obj["outbounds"]}
+        json.dump(onlyoutbound, fobj, indent=4)
     else:
         json.dump(obj, fobj, indent=4)
 
