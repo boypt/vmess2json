@@ -628,11 +628,22 @@ def fill_dns(_c):
 
 def read_subscribe(sub_url):
     print("Reading from subscribe ...")
-    headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2228.0 Safari/537.3'}
-    req =urllib.request.Request(url=sub_url,headers=headers)
-    with urllib.request.urlopen(req) as response:
-        _subs = response.read()
-        return base64.b64decode(_subs).decode().splitlines()
+
+    if sub_url.startswith("http"):
+        headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2228.0 Safari/537.3'}
+        req =urllib.request.Request(url=sub_url,headers=headers)
+        with urllib.request.urlopen(req) as response:
+            _subs = response.read()
+            return base64.b64decode(_subs).decode().splitlines()
+    elif os.path.exists(sub_url):
+        with open(sub_url) as f:
+            _subs = f.read()
+            try:
+                b64lines = base64.b64decode(_subs).decode().splitlines()
+                return b64lines
+            except (binascii.Error, UnicodeDecodeError):
+                lines = _subs.splitlines()
+                return lines
 
 def select_multiple(lines):
     vmesses = []
@@ -690,7 +701,7 @@ if __name__ == "__main__":
     parser.add_argument('--subscribe',
                         action="store",
                         default="",
-                        help="read from a subscribe url, display a menu to choose nodes")
+                        help="read from a subscribe (local file or http url) , display a menu to choose nodes")
     parser.add_argument('-o', '--output',
                         type=argparse.FileType('w'),
                         default=sys.stdout,
