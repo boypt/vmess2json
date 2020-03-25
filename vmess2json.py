@@ -641,22 +641,21 @@ def select_multiple(lines):
         if _vinfo is not None:
             vmesses.append({ "ps": "[{ps}] {add}:{port}/{net}".format(**_vinfo), "vm": _v })
 
-    print("Found {} items.".format(len(vmesses)))
-
-    for i, item in enumerate(vmesses):
-        print("[{}] - {}".format(i+1, item["ps"]))
-
-    print()
+    if len(vmesses) > 1:
+        print("Found {} items.".format(len(vmesses)))
+        for i, item in enumerate(vmesses):
+            print("[{}] - {}".format(i+1, item["ps"]))
+        print()
 
     if not sys.stdin.isatty() and os.path.exists('/dev/tty'):
         sys.stdin.close()
         sys.stdin = open('/dev/tty', 'r')
 
-    if sys.stdin.isatty():
+    if len(vmesses) > 1 and sys.stdin.isatty():
         sel = input("Choose >>> ")
         idx = int(sel) - 1
-    elif int(option.select) > -1:
-        idx = int(option.select) - 1
+    elif len(vmesses) == 1:
+        idx = 0
     else:
         raise Exception("Current session cant open a tty to select. Specify the index to --select argument.")
 
