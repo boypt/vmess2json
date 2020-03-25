@@ -651,13 +651,15 @@ def select_multiple(lines):
         sys.stdin.close()
         sys.stdin = open('/dev/tty', 'r')
 
-    if len(vmesses) > 1 and sys.stdin.isatty():
+    if len(vmesses) == 1:
+        idx = 0
+    elif len(vmesses) > 1 and int(option.select) > 0:
+        idx = int(option.select) - 1
+    elif len(vmesses) > 1 and sys.stdin.isatty():
         sel = input("Choose >>> ")
         idx = int(sel) - 1
-    elif len(vmesses) == 1:
-        idx = 0
     else:
-        raise Exception("Current session cant open a tty to select. Specify the index to --select argument.")
+        raise Exception("Current session can't open a tty to select. Specify the index to --select argument.")
 
     item = vmesses[idx]["vm"]
     
@@ -709,6 +711,10 @@ if __name__ == "__main__":
                         action="store",
                         default="",
                         help="use domestic DNS server for geosite:cn list domains.")
+    parser.add_argument('--select',
+                        action="store",
+                        default="-1",
+                        help="non-interative select for certain link")
     parser.add_argument('vmess',
                         nargs='?',
                         help="A vmess:// link. If absent, reads a line from stdin.")
