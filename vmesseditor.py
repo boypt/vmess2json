@@ -34,6 +34,8 @@ def item2link(item):
         addr = "{add}:{port}".format(**item)
         sslink = "ss://{}@{}#{}".format(auth, addr, urllib.parse.quote(item["ps"]))
         return sslink
+    elif item["net"] == "vless":
+        return item["link"]
     else:
         return "vmess://{}".format(base64.b64encode(json.dumps(item).encode()).decode()) 
 
@@ -76,9 +78,8 @@ def parseSs(sslink):
 def parseVless(link):
     if link.startswith(vlessscheme):
         linkobj = urllib.parse.urlparse(link)
-        qsobj = urllib.parse.parse_qs(linkobj.query)
         return dict(link=link, add=linkobj.netloc, port=linkobj.port, \
-                net=qsobj["type"], ps=urllib.parse.unquote(linkobj.fragment))
+                net="vless", ps=urllib.parse.unquote(linkobj.fragment))
 
 def parseVmess(vmesslink):
     if vmesslink.startswith(vmscheme):
