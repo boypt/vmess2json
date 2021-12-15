@@ -14,6 +14,7 @@ import urllib.parse
 import tempfile
 
 vmscheme = "vmess://"
+vlessscheme = "vless://"
 ssscheme = "ss://"
 
 def parseLink(link):
@@ -21,6 +22,8 @@ def parseLink(link):
         return parseSs(link)
     elif link.startswith(vmscheme):
         return parseVmess(link)
+    elif link.startswith(vlessscheme):
+        return parseVless(link)
     else:
         print("ERROR: unsupported line: "+link)
         return None
@@ -69,6 +72,13 @@ def parseSs(sslink):
             method, password = info.split(":", 2)
 
         return dict(net="shadowsocks", add=addr, port=port, method=method, password=password, ps=ps)
+
+def parseVless(link):
+    if link.startswith(vlessscheme):
+        linkobj = urllib.parse.urlparse(link)
+        qsobj = urllib.parse.parse_qs(linkobj.query)
+        return dict(link=link, add=linkobj.netloc, port=linkobj.port, \
+                net=qsobj["type"], ps=urllib.parse.unquote(linkobj.fragment))
 
 def parseVmess(vmesslink):
     if vmesslink.startswith(vmscheme):
