@@ -9,6 +9,7 @@ import binascii
 import urllib.parse
 
 vmscheme = "vmess://"
+vlessscheme = "vless://"
 ssscheme = "ss://"
 
 
@@ -17,9 +18,20 @@ def parseLink(link):
         return parseSs(link)
     elif link.startswith(vmscheme):
         return parseVmess(link)
+    elif link.startswith(vlessscheme):
+        return parseVless(link)
     else:
         print("ERROR: unsupported line: "+link)
         return None
+
+
+def parseVless(link):
+    if link.startswith(vlessscheme):
+        linkobj = urllib.parse.urlparse(link)
+        qs = urllib.parse.parse_qs(linkobj.query)
+        return dict(net="vless", link=link, port=linkobj.port,
+                    host=qs["host"][0], add=linkobj.hostname,
+                    ps=urllib.parse.unquote(linkobj.fragment))
 
 
 def parseSs(sslink):
@@ -74,8 +86,12 @@ def parseVmess(vmesslink):
 
 def view_loop(lines):
 
-    def msg(
-        x): return "{ps} / {net} / {add}:{port} / net:{net}/aid:{aid}/host:{host}/path:{path}/tls:{tls}/type:{type}".format(**x)
+    def msg(x):
+        if x.get("net", "") == "vless":
+            return "{ps} / {net} / {add}:{port}".format(**x)
+        elif x.get("net", "") == "shadowsocks":
+            return "{ps} / {method} / {add}:{port}".format(**x)
+        return "{ps} / {net} / {add}:{port} / net:{net}/aid:{aid}/host:{host}/path:{path}/tls:{tls}/type:{type}".format(**x)
 
     cnt = 0
     for _, _v in enumerate(lines):
