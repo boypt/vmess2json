@@ -17,6 +17,7 @@ vmscheme = "vmess://"
 vlessscheme = "vless://"
 ssscheme = "ss://"
 
+
 def parseLink(link):
     if link.startswith(ssscheme):
         return parseSs(link)
@@ -28,30 +29,50 @@ def parseLink(link):
         print("ERROR: unsupported line: "+link)
         return None
 
+
 def item2link(item):
     if item["net"] == "shadowsocks":
-        auth = base64.b64encode("{method}:{password}".format(**item).encode()).decode()
+        auth = base64.b64encode(
+            "{method}:{password}".format(**item).encode()).decode()
         addr = "{add}:{port}".format(**item)
-        sslink = "ss://{}@{}#{}".format(auth, addr, urllib.parse.quote(item["ps"]))
+        sslink = "ss://{}@{}#{}".format(auth,
+                                        addr, urllib.parse.quote(item["ps"]))
         return sslink
     elif item["net"] == "vless":
+
+        linkobj = urllib.parse.urlparse(item.get("link", ""))
+        qs = urllib.parse.parse_qs(linkobj.query)
+
+        is_changed = False
+        if linkobj.netloc != item["add"]:
+            is_changed = True
+            linkobj = linkobj._replace(netloc=item["add"])
+
+        if urllib.parse.unquote_plus(linkobj.fragment) != item["ps"]:
+            is_changed = True
+            linkobj = linkobj._replace(
+                fragment=urllib.parse.quote_plus(item["ps"]))
+
+        if is_changed:
+            item["link"] = linkobj.geturl()
+
         return item["link"]
     else:
-        return "vmess://{}".format(base64.b64encode(json.dumps(item).encode()).decode()) 
+        return "vmess://{}".format(base64.b64encode(json.dumps(item).encode()).decode())
 
 
 def parseSs(sslink):
     if sslink.startswith(ssscheme):
         ps = ""
         info = sslink[len(ssscheme):]
-        
+
         if info.rfind("#") > 0:
             info, ps = info.split("#", 2)
             ps = urllib.parse.unquote(ps)
-        
+
         if info.find("@") < 0:
             # old style link
-            #paddings
+            # paddings
             blen = len(info)
             if blen % 4 > 0:
                 info += "=" * (4 - blen % 4)
@@ -75,16 +96,19 @@ def parseSs(sslink):
 
         return dict(net="shadowsocks", add=addr, port=port, method=method, password=password, ps=ps)
 
+
 def parseVless(link):
     if link.startswith(vlessscheme):
         linkobj = urllib.parse.urlparse(link)
-        return dict(link=link, add=linkobj.netloc, port=linkobj.port, \
-                net="vless", ps=urllib.parse.unquote(linkobj.fragment))
+        qs = urllib.parse.parse_qs(linkobj.query)
+        return dict(net="vless", link=link,
+                    add=linkobj.netloc, ps=urllib.parse.unquote(linkobj.fragment))
+
 
 def parseVmess(vmesslink):
     if vmesslink.startswith(vmscheme):
         bs = vmesslink[len(vmscheme):]
-        #paddings
+        # paddings
         blen = len(bs)
         if blen % 4 > 0:
             bs += "=" * (4 - blen % 4)
@@ -95,15 +119,18 @@ def parseVmess(vmesslink):
         raise Exception("vmess link invalid")
 
 
-
 def menu_loop(lines):
     vmesses = []
-    menu_item = lambda x: "[{ps}] {add}:{port}/{net}".format(**x)
+
+    def menu_item(x):
+        if x.get("net", "") == "vless":
+            return "[{ps}] {net}/{add}".format(**x)
+        return "[{ps}] {net}/{add}:{port}".format(**x)
 
     for _v in lines:
         _vinfo = parseLink(_v)
         if _vinfo is not None:
-            vmesses.append({ 
+            vmesses.append({
                 "menu": menu_item(_vinfo),
                 "link": _v,
                 "info": _vinfo
@@ -162,15 +189,16 @@ add, sort, sortdesc, save, quit, help
                     _v = _idx
                 _vinfo = parseLink(_v)
                 if _vinfo is not None:
-                    vmesses.append({ 
+                    vmesses.append({
                         "menu": menu_item(_vinfo),
                         "link": _v,
                         "info": _vinfo
                     })
             elif act == "sort":
-                vmesses = sorted(vmesses, key=lambda i:i["info"]["ps"])
+                vmesses = sorted(vmesses, key=lambda i: i["info"]["ps"])
             elif act == "sortdesc":
-                vmesses = sorted(vmesses, key=lambda i:i["info"]["ps"], reverse=True)
+                vmesses = sorted(
+                    vmesses, key=lambda i: i["info"]["ps"], reverse=True)
             elif act == "save":
                 output_item(vmesses)
                 return
@@ -201,6 +229,7 @@ add, sort, sortdesc, save, quit, help
         except EOFError:
             return
 
+
 def print_help():
     print("""
 * del  -  Delete an item, example: del 12
@@ -216,6 +245,7 @@ Press Enter to return to the items menu.
 """)
     input()
 
+
 def edit_item(item):
     tfile = tempfile.NamedTemporaryFile(delete=False)
     tfile.close()
@@ -230,13 +260,15 @@ def edit_item(item):
             _in = json.load(f)
         finally:
             os.remove(tfile.name)
-        
+
         return _in
 
+
 def output_item(vmesses):
-    links = map(lambda x:x["link"], vmesses)
+    links = map(lambda x: x["link"], vmesses)
     with open(option.edit[0], "w") as f:
         f.write("\n".join(links)+"\n")
+
 
 def edit_single_link(vmess):
     _vinfo = parseLink(vmess)
@@ -253,9 +285,11 @@ def edit_single_link(vmess):
     print("Edited Link:")
     print(_link)
 
+
 if __name__ == "__main__":
 
-    parser = argparse.ArgumentParser(description="vmess subscribe file editor.")
+    parser = argparse.ArgumentParser(
+        description="vmess subscribe file editor.")
     parser.add_argument('edit',
                         nargs=1,
                         type=str,
