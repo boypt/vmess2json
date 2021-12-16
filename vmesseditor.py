@@ -44,14 +44,21 @@ def item2link(item):
         qs = urllib.parse.parse_qs(linkobj.query)
 
         is_changed = False
-        if linkobj.netloc != item["add"]:
+        if linkobj.hostname != item["add"] or linkobj.port != item["port"]:
             is_changed = True
-            linkobj = linkobj._replace(netloc=item["add"])
+            linkobj = linkobj._replace(
+                netloc="{}@{}:{}".format(linkobj.username, item["add"], linkobj.port))
 
         if urllib.parse.unquote_plus(linkobj.fragment) != item["ps"]:
             is_changed = True
             linkobj = linkobj._replace(
                 fragment=urllib.parse.quote_plus(item["ps"]))
+
+        if qs["host"][0] != item["host"]:
+            is_changed = True
+            qs["host"] = [item["host"]]
+            linkobj = linkobj._replace(
+                query=urllib.parse.urlencode(qs, doseq=True))
 
         if is_changed:
             item["link"] = linkobj.geturl()
@@ -101,8 +108,9 @@ def parseVless(link):
     if link.startswith(vlessscheme):
         linkobj = urllib.parse.urlparse(link)
         qs = urllib.parse.parse_qs(linkobj.query)
-        return dict(net="vless", link=link,
-                    add=linkobj.netloc, ps=urllib.parse.unquote(linkobj.fragment))
+        return dict(net="vless", link=link, port=linkobj.port,
+                    host=qs["host"][0], add=linkobj.hostname,
+                    ps=urllib.parse.unquote(linkobj.fragment))
 
 
 def parseVmess(vmesslink):
@@ -123,8 +131,6 @@ def menu_loop(lines):
     vmesses = []
 
     def menu_item(x):
-        if x.get("net", "") == "vless":
-            return "[{ps}] {net}/{add}".format(**x)
         return "[{ps}] {net}/{add}:{port}".format(**x)
 
     for _v in lines:
