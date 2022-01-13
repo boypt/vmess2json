@@ -171,6 +171,7 @@ add, sort, sortdesc, save, quit, help
 
             elif len(command) == 1:
                 act = command[0]
+                _idx = ""
 
             if act == "help":
                 print_help()
