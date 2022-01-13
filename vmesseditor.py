@@ -108,9 +108,13 @@ def parseVless(link):
     if link.startswith(vlessscheme):
         linkobj = urllib.parse.urlparse(link)
         qs = urllib.parse.parse_qs(linkobj.query)
-        return dict(net="vless", link=link, port=linkobj.port,
-                    host=qs["host"][0], add=linkobj.hostname,
-                    ps=urllib.parse.unquote(linkobj.fragment))
+
+        ret = dict(net="vless", link=link, port=linkobj.port,
+                   add=linkobj.hostname, ps=urllib.parse.unquote(linkobj.fragment))
+        if "host" in qs:
+            ret["host"] = qs["host"][0]
+
+        return ret
 
 
 def parseVmess(vmesslink):
