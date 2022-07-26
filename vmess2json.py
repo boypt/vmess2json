@@ -463,6 +463,7 @@ def fill_vmess_or_vless(_c, _v):
     if "optional_users_security" in _v:
         if _v["protocol"] == "vless":
             _vnext_user_0["encryption"] = _v["optional_users_security"]
+            del _vnext_user_0["security"]
         else:
             _vnext_user_0["security"] = _v["optional_users_security"]
 
