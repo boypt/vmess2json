@@ -461,7 +461,10 @@ def fill_vmess_or_vless(_c, _v):
     else:
         _vnext_user_0["alterId"] = int(_v["aid"])
     if "optional_users_security" in _v:
-        _vnext_user_0["security"] = _v["optional_users_security"]
+        if _v["protocol"] == "vless":
+            _vnext_user_0["encryption"] = _v["optional_users_security"]
+        else:
+            _vnext_user_0["security"] = _v["optional_users_security"]
 
     _outbound["streamSettings"]["network"]  = _v["net"]
     if _v["tls"] == "tls":
