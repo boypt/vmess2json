@@ -421,11 +421,11 @@ def parseVless(vlesslink):
         RETOBJ["path"] = validate(parsed_qs.get('path', '/'))
         RETOBJ["host"] = validate(parsed_qs.get('host', parsed.hostname))
     elif RETOBJ["net"] == 'kcp':
-        RETOBJ["type"] = validate(parsed_qs.get('headerType', parsed.hostname))
+        RETOBJ["type"] = validate(parsed_qs.get('headerType', 'none'))
         if parsed_qs.get('seed', None) is not None:
             raise RuntimeError("mKCP seed is not supported by this tool")
     elif RETOBJ["net"] == 'quic':
-        RETOBJ["type"] = validate(parsed_qs.get('headerType', parsed.hostname))
+        RETOBJ["type"] = validate(parsed_qs.get('headerType', 'none'))
         RETOBJ["host"] = validate(parsed_qs.get('quicSecurity', 'none'))
         RETOBJ["path"] = validate(parsed_qs.get('key', '')) # TODO: decodeURIComponent
     elif RETOBJ["net"] == 'grpc':
