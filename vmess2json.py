@@ -1,6 +1,4 @@
 #!/usr/bin/env python3
-# recolic modify: 1. remove DNS and routing (assuming DNS server and bypassing china ip, might cause confusion)
-# 2. adding vless logic          3. refine code to use dedicated function for base64 decoding
 import os
 import sys
 import json
