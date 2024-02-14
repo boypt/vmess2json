@@ -333,7 +333,7 @@ def parseSs(sslink):
         info = sslink[len(ssscheme):]
         
         if info.rfind("#") > 0:
-            info, _ps = info.split("#", 2)
+            info, _ps = info.split("#", 1)
             RETOBJ["ps"] = urllib.parse.unquote(_ps)
         
         if info.find("@") < 0:
